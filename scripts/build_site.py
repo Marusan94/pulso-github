@@ -1,0 +1,303 @@
+import json, os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA = os.path.join(ROOT, "data")
+SITE = os.path.join(ROOT, "docs")
+SRC = SITE
+TOP = json.dumps(json.load(open(os.path.join(DATA, "repos.json"), encoding="utf-8"))["repos"], ensure_ascii=False)
+TRE = json.dumps(json.load(open(os.path.join(DATA, "trending.json"), encoding="utf-8"))["repos"], ensure_ascii=False)
+print("top:", len(TOP) // 1024, "KB | tre:", len(TRE) // 1024, "KB")
+
+# fid, titulo, layout, extra_css, extra_hero
+FILES = [
+("01-signal-cards", "Signal", "cards", ".card{border-left:4px solid var(--acc)} .rn{font-family:mono;font-size:22px;color:var(--acc)}", ""),
+("02-midnight-console", "Consola", "table", ".dots span{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2A3550;margin-right:6px}", "<div class='dots noprint'><span></span><span></span><span></span></div>"),
+("04-ledger-table", "Libro", "table", "td.num{text-align:right} tbody tr:nth-child(even){background:#0D1526}", ""),
+("05-tide-glass", "Marea", "cards", ".card{background:rgba(17,26,46,.72);backdrop-filter:blur(6px)}", ""),
+("07-control-tower", "Torre", "split", ".live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--acc)}", "<p class='mut'><span class='live'></span> base local, sin internet salvo vistas previas</p>"),
+("08-atlas-kanban", "Atlas", "kanban", ".colh{border-bottom:2px solid var(--acc);padding-bottom:4px}", ""),
+("09-phosphor-terminal", "Fósforo", "table", ".scan{height:6px;background:repeating-linear-gradient(0deg,var(--acc) 0 1px,transparent 1px 3px);opacity:.25;margin:8px 0} td{font-family:mono}", "<div class='scan'></div><p class='mut'>> consultando base local de 700 registros...</p>"),
+("11-gallery-wall", "Galería", "bento", "img.prev{min-height:120px;object-fit:cover}", ""),
+("14-block-party", "Bloque", "cards", ".card{border:2px solid var(--acc);box-shadow:5px 5px 0 var(--acc)}", ""),
+("15-plum-material", "Pluma", "cards", ".card{border-radius:20px} h1{letter-spacing:.01em}", ""),
+("16-cave-git", "Cueva", "list", ".card{background:transparent;border:0;border-bottom:1px solid #2A3550;border-radius:0}", ""),
+("21-podium", "Podio", "podium", ".medal{font-size:38px;font-weight:800;color:var(--acc)}", ""),
+("23-night-drive", "Nocturna", "cards", "@media(prefers-reduced-motion:no-preference){.card{animation:up .35s ease both} .card:nth-child(2){animation-delay:.05s} .card:nth-child(3){animation-delay:.1s} .card:nth-child(4){animation-delay:.15s} @keyframes up{from{opacity:0;transform:translateY(8px)}}}", ""),
+("28-abyss", "Abismo", "table", ".twrap{background:#0A1424;border-radius:12px}", ""),
+("29-evergreen", "Perenne", "cards", ".card{border-style:double;border-width:4px}", ""),
+("30-ember", "Brasa", "bento", ".lead{grid-column:1/-1} .lead img.prev{max-height:260px;object-fit:cover}", ""),
+("trending", "Tendencias", "cards", ".age{font-size:15px}", ""),
+]
+
+TPL = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__ - Ranking GitHub</title>
+__FONTLINK__
+<style>
+:root{--bg:__BG__;--card:__CARD__;--ink:__INK__;--mut:__MUT__;--acc:__ACC__;--acctext:__ACCTEXT__;--rad:__RAD__;--line:color-mix(in srgb, var(--ink) 20%, transparent)}
+body{background:var(--bg);color:var(--ink);font-family:'__BODY__',system-ui,sans-serif;margin:0}
+.mono{font-family:'__MONO__',monospace}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-family:'__DISP__',system-ui,sans-serif;font-weight:800;letter-spacing:-.01em;margin:6px 0}
+.mut{color:var(--mut)}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin:12px 0;flex-wrap:wrap}
+.seg button{flex:1;background:transparent;border:0;color:var(--mut);padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap}
+.seg button.on{background:var(--acc);color:var(--acctext)}
+.seg input{background-color:color-mix(in srgb, var(--ink) 6%, transparent);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font-family:inherit}
+.bar{display:flex;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;position:sticky;top:8px;z-index:5;align-items:center}
+.bar input,.bar select{background:color-mix(in srgb, var(--ink) 6%, transparent);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit}
+.bar input{flex:1;min-width:160px}
+.dl{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+.dl button{background:transparent;border:1px solid var(--acc);color:var(--acc);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;font-family:inherit}
+.dl a{color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:12px}
+.pick{border:1px solid var(--acc);color:var(--acc);background:transparent;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;font-family:inherit;margin-top:6px}
+.pick.on{background:var(--acc);color:var(--acctext)}
+.bdg{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;margin:1px 2px;color:var(--mut)}
+.age{font-family:'JetBrains Mono',monospace;background:var(--acc);color:var(--acctext);font-weight:700;border-radius:8px;padding:4px 10px;white-space:nowrap}
+a{color:var(--acc)}
+img.prev{width:100%;border-radius:8px;display:block;border:1px solid var(--line)}
+.pg{display:flex;gap:8px;align-items:center;margin:10px 0}
+.pg button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-top:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600}
+td.num{font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+__EXTRA_CSS__
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pg,.dl,.seg,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#000;break-inside:avoid}}
+</style></head>
+<body><div class="wrap">
+<p class="mut mono">700 registros incluidos en este archivo &middot; corte 14 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
+<h1>__TITLE__</h1>
+<p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
+__EXTRA_HERO__
+<div class="seg noprint" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
+<div class="seg noprint" id="dates" style="display:none" role="group" aria-label="Rango de fechas">
+<button data-r="5" class="on">Últimos 5 días</button><button data-r="15">Últimos 15 días</button><button data-r="31">El mes</button>
+<span class="mut" style="align-self:center">o por un día exacto:</span><input type="date" id="d" min="2026-08-15" max="2026-09-14" aria-label="Filtrar por día exacto">
+</div>
+<div class="bar">
+<label class="mut" for="q">Buscar</label><input id="q" placeholder="Por ejemplo: agentes, python, editores...">
+<label class="mut" for="c">Categoría</label><select id="c"><option value="">Todas</option></select>
+<label class="mut" for="s">Ordenar por</label><select id="s"><option value="stars">Estrellas</option><option value="new">Más nuevos</option><option value="forks">Bifurcaciones</option></select>
+<span id="n" class="mut"></span></div>
+<div class="dl noprint">
+<button id="bcsv">CSV</button><button id="bxlsx">Excel (filtrado)</button>
+<button id="bjson">JSON</button><button id="bpdf">PDF</button>
+<a id="fullx" href="top500.xlsx">Excel completo</a></div>
+<div class="dl noprint" id="favbar">
+<button id="bfav">★ Mis elegidos (<span id="favc">0</span>)</button>
+<button id="fxlsx">Excel elegidos</button><button id="fpdf">PDF elegidos</button><button id="fcsv">CSV elegidos</button>
+<button id="fclear">Limpiar</button><span id="favmsg" class="mut"></span></div>
+<div class="pg"><button id="prev">&lsaquo;</button><span id="p" class="mut"></span><button id="next">&rsaquo;</button></div>
+<div id="g"></div>
+<div class="pg"><button id="prev2">&lsaquo;</button><span id="p2" class="mut"></span><button id="next2">&rsaquo;</button></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const DB500 = __DB500__;
+const DBTRE = __DBTRE__;
+const LAYOUT = "__LAYOUT__";
+const HOY = '2026-09-14';
+let module = "__MODULE__", range = 5, exactDay = '', F = [], page = 0, showFav = false;
+let FAV = {};
+try { FAV = JSON.parse(localStorage.getItem('gr-favs-v1') || '{}'); } catch(e){ FAV = {}; }
+function saveFav(){ try { localStorage.setItem('gr-favs-v1', JSON.stringify(FAV)); } catch(e){} }
+function favCount(){ return Object.keys(FAV).length; }
+function updateFavUI(){
+  document.getElementById('favc').textContent = favCount();
+  document.getElementById('bfav').innerHTML = showFav ? 'Ver todos' : '★ Mis elegidos (<span id="favc">' + favCount() + '</span>)';
+  const m = document.getElementById('favmsg');
+  if (m) m.textContent = showFav ? 'Viendo solo tus elegidos.' : '';
+}
+function favRows(){
+  const out = [];
+  Object.keys(FAV).forEach(k => {
+    const parts = k.split('|'), src = parts[0] === 'tre' ? DBTRE : DB500;
+    const hit = src.filter(x => x.full_name === parts.slice(1).join('|'));
+    if (hit.length) out.push(hit[0]);
+  });
+  return out;
+}
+const PER = 50, g = document.getElementById('g');
+function DB(){ return module === '500' ? DB500 : DBTRE; }
+function daysOld(iso){ return Math.round((new Date(HOY) - new Date(iso)) / 86400000); }
+function age(iso){ const d = daysOld(iso); return d <= 0 ? 'hoy' : d === 1 ? 'ayer' : 'hace ' + d + ' días'; }
+function fmt(n){ return n >= 1000 ? (n/1000).toFixed(n >= 100000 ? 0 : 1).replace(/\\.0$/,'') + ' mil' : '' + n; }
+function fillCats(){
+  const csel = document.getElementById('c'), cur = csel.value;
+  csel.innerHTML = '<option value="">Todas</option>';
+  [...new Set(DB().map(x => x.categoria))].sort().forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; csel.appendChild(o);
+  });
+  if ([...csel.options].some(o => o.value === cur)) csel.value = cur;
+}
+function setModule(m){
+  module = m; page = 0; exactDay = '';
+  const dd = document.getElementById('d'); if (dd) dd.value = '';
+  document.getElementById('m500').classList.toggle('on', m === '500');
+  document.getElementById('mtre').classList.toggle('on', m === 'tre');
+  document.getElementById('dates').style.display = m === 'tre' ? 'flex' : 'none';
+  document.getElementById('fullx').href = m === '500' ? 'top500.xlsx' : 'trending.xlsx';
+  document.getElementById('fullx').textContent = m === '500' ? 'Excel completo (500 repositorios)' : 'Excel completo (200 repositorios)';
+  fillCats(); apply();
+}
+document.getElementById('m500').onclick = () => setModule('500');
+document.getElementById('mtre').onclick = () => setModule('tre');
+document.querySelectorAll('#dates button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#dates button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); range = +b.dataset.r; exactDay = '';
+  document.getElementById('d').value = ''; page = 0; apply();
+});
+document.getElementById('d').onchange = e => {
+  exactDay = e.target.value; page = 0;
+  if (exactDay) document.querySelectorAll('#dates button').forEach(x => x.classList.remove('on'));
+  apply();
+};
+function apply(){
+  const q = document.getElementById('q').value.toLowerCase(),
+        c = document.getElementById('c').value, s = document.getElementById('s').value;
+  F = DB().filter(x => {
+    if (c && x.categoria !== c) return false;
+    if (module === 'tre'){
+      if (exactDay){ if (x.created_at !== exactDay) return false; }
+      else if (daysOld(x.created_at) >= range) return false;
+    }
+    return (x.full_name + ' ' + (x.descripcion_es||'') + ' ' + (x.description||'') + ' ' + x.language).toLowerCase().includes(q);
+  });
+  F.sort((a,b) => s === 'forks' ? b.forks - a.forks : s === 'new' ? (b.created_at||b.pushed_at||'').localeCompare(a.created_at||a.pushed_at||'') : b.stars - a.stars);
+  page = 0; render();
+}
+['q','c','s'].forEach(id => document.getElementById(id).addEventListener('input', apply));
+function go(d){ page = Math.min(Math.max(0, page + d), Math.max(0, Math.ceil(F.length/PER) - 1)); render(); window.scrollTo(0,0); }
+document.getElementById('prev').onclick = document.getElementById('prev2').onclick = () => go(-1);
+document.getElementById('next').onclick = document.getElementById('next2').onclick = () => go(1);
+function badges(x){
+  const f = module === 'tre' ? x.created_at : x.pushed_at;
+  const fl = module === 'tre' ? 'creado el ' : '';
+  return `<span class="bdg">${x.language}</span><span class="bdg">${x.categoria}</span><span class="bdg">${x.license}</span><span class="bdg">${fmt(x.forks)} bifurcaciones</span><span class="bdg">${fl}${f}</span>`;
+}
+function prev(x, w){
+  return `<a href="${x.url}" target="_blank" rel="noopener"><img class="prev" loading="lazy" alt="Vista previa de ${x.full_name}" src="https://opengraph.githubassets.com/1/${x.full_name}"></a>`;
+}
+function head(x){
+  const tag = module === 'tre' ? `<span class="age">${age(x.created_at)}</span> ` : '';
+  const k = module + '|' + x.full_name;
+  const picked = !!FAV[k];
+  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong><div>${badges(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
+}
+document.getElementById('g').addEventListener('click', e => {
+  const b = e.target.closest ? e.target.closest('.pick') : null;
+  if (!b) return;
+  const k = b.getAttribute('data-m') + '|' + b.getAttribute('data-n');
+  if (FAV[k]) delete FAV[k]; else FAV[k] = 1;
+  saveFav(); updateFavUI(); render();
+});
+function render(){
+  const src = showFav ? favRows() : F;
+  const pages = Math.max(1, Math.ceil(src.length / PER));
+  page = Math.min(Math.max(0, page), pages - 1);
+  const slice = src.slice(page * PER, page * PER + PER);
+  document.getElementById('n').textContent = src.length + ' repositorios' + (showFav ? ' (elegidos)' : '');
+  document.getElementById('p').textContent = document.getElementById('p2').textContent = 'Página ' + (page+1) + ' de ' + pages;
+  updateFavUI();
+  if (!slice.length){ g.innerHTML = showFav ? '<p class="mut">Aún no elegiste ninguno. Explora y pulsa ☆ Elegir en los que te gusten: se guardan en este navegador.</p>' : '<p class="mut">Sin repositorios con ese filtro. Amplía el rango o cambia la búsqueda.</p>'; return; }
+  if (LAYOUT === 'table'){
+    g.innerHTML = `<div class="card" style="overflow:auto;padding:0"><table><thead><tr><th scope="col">Puesto</th><th scope="col">Repositorio y qué hace</th><th scope="col">Estrellas</th><th scope="col">Vista previa</th></tr></thead><tbody>` +
+      slice.map(x => `<tr><td class="num">${x.rank}</td><td>${head(x)}</td><td class="num"><strong>${fmt(x.stars)}</strong></td><td style="min-width:170px">${prev(x)}</td></tr>`).join('') + `</tbody></table></div>`;
+  } else if (LAYOUT === 'split'){
+    g.innerHTML = `<div class="grid">` + slice.map(x => `<div class="card" style="display:flex;gap:10px"><div style="flex:1;min-width:0">${head(x)}</div><div style="width:150px;flex-shrink:0">${prev(x)}</div></div>`).join('') + `</div>`;
+  } else if (LAYOUT === 'bento'){
+    const top = slice.slice(0, 6), rest = slice.slice(6);
+    g.innerHTML = `<div class="grid3">` + top.map(x => `<div class="card" style="overflow:hidden;padding:0"><div>${prev(x)}</div><div style="padding:10px">${head(x)}</div></div>`).join('') + `</div><div class="grid" style="margin-top:12px">` + rest.map(x => `<div class="card" style="display:flex;gap:10px"><div style="flex:1;min-width:0">${head(x)}</div><div style="width:120px;flex-shrink:0">${prev(x)}</div></div>`).join('') + `</div>`;
+  } else if (LAYOUT === 'list'){
+    g.innerHTML = slice.map(x => `<div class="card" style="display:flex;gap:10px;margin-bottom:8px"><div style="flex:1;min-width:0">${head(x)}</div><div style="width:140px;flex-shrink:0">${prev(x)}</div></div>`).join('');
+  } else if (LAYOUT === 'kanban'){
+    const groups = {};
+    slice.forEach(x => { (groups[x.categoria] = groups[x.categoria] || []).push(x); });
+    g.innerHTML = `<div class="grid3">` + Object.keys(groups).sort().map(k => `<div><h3 class="colh">${k} (${groups[k].length})</h3>` + groups[k].map(x => `<div class="card" style="margin-bottom:8px">${head(x)}<div style="margin-top:6px">${prev(x)}</div></div>`).join('') + `</div>`).join('') + `</div>`;
+  } else if (LAYOUT === 'podium'){
+    const t3 = slice.slice(0, 3), rest = slice.slice(3);
+    g.innerHTML = `<div class="grid3">` + t3.map((x, i) => `<div class="card" style="border:2px solid var(--acc)"><div class="medal mono">${['1','2','3'][i]}</div>${head(x)}<div style="margin-top:6px">${prev(x)}</div></div>`).join('') + `</div><div class="grid" style="margin-top:12px">` + rest.map(x => `<div class="card" style="display:flex;gap:10px"><div style="flex:1;min-width:0">${head(x)}</div><div style="width:120px;flex-shrink:0">${prev(x)}</div></div>`).join('') + `</div>`;
+  } else {
+    g.innerHTML = `<div class="grid">` + slice.map(x => `<div class="card">${head(x)}<div style="margin-top:8px">${prev(x)}</div></div>`).join('') + `</div>`;
+  }
+}
+function fname(){ return module + '-github'; }
+document.getElementById('bcsv').onclick = () => download('csv');
+document.getElementById('bxlsx').onclick = () => download('xlsx');
+document.getElementById('bjson').onclick = () => download('json');
+document.getElementById('bpdf').onclick = () => download('pdf');
+document.getElementById('bfav').onclick = () => { showFav = !showFav; page = 0; render(); };
+document.getElementById('fcsv').onclick = () => download('csv', true);
+document.getElementById('fxlsx').onclick = () => download('xlsx', true);
+document.getElementById('fpdf').onclick = () => download('pdf', true);
+document.getElementById('fclear').onclick = () => { FAV = {}; saveFav(); showFav = false; render(); };
+function download(kind, onlyFav){
+  const rows = onlyFav ? favRows() : F;
+  if (onlyFav && !rows.length){ alert('Aún no elegiste ninguno. Pulsa ☆ Elegir primero.'); return; }
+  if (kind === 'csv' || kind === 'json'){
+    const txt = kind === 'json' ? JSON.stringify(rows, null, 1) :
+      'puesto,nombre,estrellas,bifurcaciones,lenguaje,categoria,licencia,tipo,fecha,url,descripcion,descripcion_original\\n' +
+      rows.map(x => [x.rank, '"'+x.full_name+'"', x.stars, x.forks, x.language, x.categoria, x.license, x.tipo, x.created_at||x.pushed_at, x.url, '"'+(x.descripcion_es||'').replace(/"/g,'""')+'"', '"'+(x.description||'').replace(/"/g,'""')+'"'].join(',')).join('\\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], {type: kind === 'json' ? 'application/json' : 'text/csv'}));
+    a.download = (onlyFav ? 'elegidos-' : '') + fname() + '.' + (kind === 'json' ? 'json' : 'csv'); a.click();
+  } else if (kind === 'xlsx'){
+    if (typeof XLSX === 'undefined'){ alert('Sin internet para el Excel filtrado. Usa el enlace de Excel completo.'); return; }
+    const ws = XLSX.utils.json_to_sheet(rows.map(x => ({puesto:x.rank, nombre:x.full_name, descripcion:x.descripcion_es, descripcion_original:x.description, estrellas:x.stars, bifurcaciones:x.forks, lenguaje:x.language, categoria:x.categoria, licencia:x.license, tipo:x.tipo, fecha:x.created_at||x.pushed_at, enlace:x.url})));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'ranking');
+    XLSX.writeFile(wb, (onlyFav ? 'elegidos-' : '') + fname() + '-filtrado.xlsx');
+  } else if (kind === 'pdf'){
+    const old = g.innerHTML;
+    g.innerHTML = '<div class="card"><table><thead><tr><th>Puesto</th><th>Repositorio</th><th>Qué hace</th><th>Estrellas</th><th>Enlace</th></tr></thead><tbody>' +
+      rows.map(x => `<tr><td>${x.rank}</td><td>${x.full_name}</td><td>${(x.descripcion_es||'').slice(0,200)}</td><td>${fmt(x.stars)}</td><td>${x.url}</td></tr>`).join('') + '</tbody></table></div>';
+    window.print(); g.innerHTML = old; render();
+  }
+}
+setModule("__MODULE__");
+</script></div></body></html>"""
+
+
+PAL = {
+"01-signal-cards": ("Archivo","Archivo","IBM Plex Mono","#FAFAF7","#FFFFFF","#16130E","#6B6257","#D63A2F","#FFFFFF","4px"),
+"02-midnight-console": ("Sora","Sora","JetBrains Mono","#0A0E14","#11161F","#E6E1D8","#8A94A6","#4ADE80","#07130C","6px"),
+"04-ledger-table": ("Roboto Slab","Roboto Slab","IBM Plex Mono","#FBFAF7","#FFFFFF","#1F1B16","#6E6259","#1D4ED8","#FFFFFF","2px"),
+"05-tide-glass": ("Outfit","Outfit","Outfit","#0B1B26","rgba(255,255,255,.07)","#F2F7FA","#9DB4C0","#5EEAD4","#062A26","16px"),
+"07-control-tower": ("DM Sans","DM Sans","JetBrains Mono","#F2F4FA","#FFFFFF","#141A2B","#5B6478","#4F46E5","#FFFFFF","10px"),
+"08-atlas-kanban": ("Manrope","Manrope","Manrope","#F4F7FA","#FFFFFF","#10202E","#5B6B7B","#0284C7","#FFFFFF","12px"),
+"09-phosphor-terminal": ("VT323","IBM Plex Mono","IBM Plex Mono","#041008","#06130B","#B6FFC9","#3E7A52","#4ADE80","#041008","0px"),
+"11-gallery-wall": ("Sora","Hanken Grotesk","Hanken Grotesk","#141210","#1E1B17","#F5EFE4","#A89C88","#F59E0B","#231303","10px"),
+"14-block-party": ("Archivo Black","Space Mono","Space Mono","#FFF3D6","#FFFFFF","#000000","#3D3D3D","#FF5C00","#1F0E00","0px"),
+"15-plum-material": ("Figtree","Figtree","IBM Plex Mono","#F4EFFA","#FFFFFF","#221B2E","#6E6580","#7C3AED","#FFFFFF","16px"),
+"16-cave-git": ("IBM Plex Mono","IBM Plex Mono","IBM Plex Mono","#0D1117","#161B22","#E6EDF3","#8B949E","#2F81F7","#FFFFFF","6px"),
+"21-podium": ("Oswald","Cabin","Cabin","#101828","#1A2436","#F8F3E7","#9AA3B2","#FBBF24","#231603","8px"),
+"23-night-drive": ("Sora","Sora","JetBrains Mono","#08090D","#101218","#EDEFF5","#8E93A3","#34D399","#05281C","14px"),
+"28-abyss": ("Chakra Petch","Chakra Petch","IBM Plex Mono","#041E2E","#07293D","#E8F6FF","#7FA8BE","#22D3EE","#06252B","4px"),
+"29-evergreen": ("Bitter","Work Sans","Work Sans","#0A1F14","#10281A","#E9F5EC","#8FB69C","#4ADE80","#05281A","12px"),
+"30-ember": ("DM Serif Display","Karla","Karla","#1A0E08","#241209","#FBF3E8","#C0A488","#F97316","#261000","6px"),
+"trending": ("Sora","Sora","JetBrains Mono","#070B14","#111A2E","#E8ECF5","#9AA7C2","#22D3EE","#070B14","12px"),
+}
+def fontlink(disp, body, mono):
+    fams = []
+    for f in (disp, body, mono):
+        if f not in fams:
+            fams.append(f)
+    q = "&".join("family=" + f.replace(" ", "+") + ":wght@400;600;700" for f in fams)
+    return "<link href='https://fonts.googleapis.com/css2?" + q + "&display=swap' rel='stylesheet'>"
+
+for (fid, title, layout, css, hero) in FILES:
+    mod = "tre" if fid == "trending" else "500"
+    html = TPL.replace("__TITLE__", title).replace("__LAYOUT__", layout)
+    html = html.replace("__EXTRA_CSS__", css).replace("__EXTRA_HERO__", hero)
+    html = html.replace("__MODULE__", mod).replace("__DB500__", TOP).replace("__DBTRE__", TRE)
+    disp, body, mono, bg, card, ink, mut, acc, acctext, rad = PAL[fid]
+    html = html.replace("__FONTLINK__", fontlink(disp, body, mono))
+    html = html.replace("__DISP__", disp).replace("__BODY__", body).replace("__MONO__", mono)
+    html = html.replace("__BG__", bg).replace("__CARD__", card).replace("__INK__", ink)
+    html = html.replace("__MUT__", mut).replace("__ACC__", acc).replace("__ACCTEXT__", acctext).replace("__RAD__", rad)
+    open(os.path.join(SRC, fid + ".html"), "w", encoding="utf-8").write(html)
+    print(fid, len(html) // 1024, "KB")
