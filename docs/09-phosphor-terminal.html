@@ -48,6 +48,7 @@ td.num{font-family:'JetBrains Mono',monospace;white-space:nowrap}
 @media print{.bar,.pg,.dl,.seg,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#000;break-inside:avoid}}
 </style></head>
 <body><div class="wrap">
+<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
 <p class="mut mono">700 registros incluidos en este archivo &middot; corte 14 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
 <h1>Fósforo</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
@@ -113,7 +114,7 @@ const PER = 50, g = document.getElementById('g');
 function DB(){ return module === '500' ? DB500 : DBTRE; }
 function daysOld(iso){ return Math.round((new Date(HOY) - new Date(iso)) / 86400000); }
 function age(iso){ const d = daysOld(iso); return d <= 0 ? 'hoy' : d === 1 ? 'ayer' : 'hace ' + d + ' días'; }
-function fmt(n){ return n >= 1000 ? (n/1000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/,'') + ' mil' : '' + n; }
+function fmt(n){ if (n >= 1000000) return (n/1000000).toFixed(1).replace('.', ',').replace(',0', '') + ' millones'; return n >= 1000 ? (n/1000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/,'') + ' mil' : '' + n; }
 function fillCats(){
   const csel = document.getElementById('c'), cur = csel.value;
   csel.innerHTML = '<option value="">Todas</option>';
