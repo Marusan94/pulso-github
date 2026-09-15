@@ -14,7 +14,7 @@ assert all(x.get("descripcion_es") for x in top + tre), "falta descripcion_es"
 print(f"datos OK: {len(top)} top + {len(tre)} trending, todos con descripcion_es")
 
 fails = 0
-SIN_DB = {"index.html", "404.html"}  # landing y error: sin base embebida por diseño
+SIN_DB = {"index.html", "404.html", "como-esta-hecho.html"}  # sin base embebida por diseño
 for f in sorted(glob.glob(os.path.join(SITE, "*.html"))):
     t = open(f, encoding="utf-8").read()
     name = os.path.basename(f)

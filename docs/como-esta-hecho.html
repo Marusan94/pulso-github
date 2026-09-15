@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cómo está hecho — Ranking GitHub</title>
+<meta name="description" content="Arquitectura del ranking: de la API de GitHub a 17 páginas estáticas.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+body{background:#070B14;color:#E8ECF5;font-family:system-ui,sans-serif;margin:0}
+.wrap{max-width:820px;margin:0 auto;padding:20px}
+h1{letter-spacing:-.02em}a{color:#22D3EE}
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0}
+.paso{background:#111A2E;border:1px solid #2A3550;border-radius:12px;padding:12px 16px}
+.flecha{text-align:center;color:#22D3EE;font-size:20px;line-height:1.2}
+code{background:#111A2E;padding:2px 6px;border-radius:6px}
+.mut{color:#9AA7C2}:focus-visible{outline:3px solid #22D3EE;outline-offset:2px}
+</style></head>
+<body><div class="wrap">
+<p class="mut"><a href="index.html">← Volver a los temas</a></p>
+<h1>Cómo está hecho</h1>
+<p>Cada lunes un Action despierta, trae datos frescos de la API pública de GitHub y regenera todo el sitio. Sin servidor, sin base de datos: 17 archivos HTML autónomos con los datos dentro.</p>
+<div class="flow">
+<div class="paso"><b>1. API de GitHub.</b> <code>scripts/fetch_top.py</code> trae los 500 con más estrellas y <code>fetch_trending.py</code> los creados el último mes. Pausas incluidas para respetar el límite sin token.</div>
+<div class="flecha">↓</div>
+<div class="paso"><b>2. Español + taxonomía.</b> <code>describe.py</code> añade descripción en español, categoría (IA, Frontend…) y tipo (herramienta, lista, educativo).</div>
+<div class="flecha">↓</div>
+<div class="paso"><b>3. Foto semanal.</b> <code>snapshot.py</code> guarda un resumen en <code>data/history/</code>: así nacen la racha 🔥, las gráficas y la API versionada.</div>
+<div class="flecha">↓</div>
+<div class="paso"><b>4. Excel.</b> <code>export_excel.py</code> genera los dos XLSX con hipervínculos y filtros nativos.</div>
+<div class="flecha">↓</div>
+<div class="paso"><b>5. Sitio.</b> <code>build_site.py</code> incrusta ambas bases en cada tema; <code>verify.py</code> valida el JavaScript con node y los datos.</div>
+</div>
+<h2>La API</h2>
+<p>Los mismos JSON del sitio, versionados por fecha en <code>data/history/</code>. Campos en <code>SCHEMA.md</code> del repositorio. Ejemplo:</p>
+<p><code>fetch("data/history/2026-09-14-top.json").then(r =&gt; r.json())</code></p>
+<p class="mut">Refresco: lunes 06:00 UTC vía <code>.github/workflows/refresh.yml</code>.</p>
+</div></body></html>

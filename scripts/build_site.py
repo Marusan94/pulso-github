@@ -1,11 +1,51 @@
-import json, os
+import glob
+import json
+import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 SITE = os.path.join(ROOT, "docs")
 SRC = SITE
-TOP = json.dumps(json.load(open(os.path.join(DATA, "repos.json"), encoding="utf-8"))["repos"], ensure_ascii=False)
-TRE = json.dumps(json.load(open(os.path.join(DATA, "trending.json"), encoding="utf-8"))["repos"], ensure_ascii=False)
+TOP_DATA = json.load(open(os.path.join(DATA, "repos.json"), encoding="utf-8"))
+TRE_DATA = json.load(open(os.path.join(DATA, "trending.json"), encoding="utf-8"))
+TOP = json.dumps(TOP_DATA["repos"], ensure_ascii=False)
+TRE = json.dumps(TRE_DATA["repos"], ensure_ascii=False)
 print("top:", len(TOP) // 1024, "KB | tre:", len(TRE) // 1024, "KB")
+
+
+def deltas(kind, current):
+    """Diferencia de estrellas vs el snapshot anterior. {} si es el primer corte."""
+    snaps = sorted(glob.glob(os.path.join(DATA, "history", "*-" + kind + ".json")))
+    prevs = [s for s in snaps if os.path.basename(s)[:10] < current.get("fecha", "")]
+    if not prevs:
+        return {}, ""
+    prev = json.load(open(prevs[-1], encoding="utf-8"))
+    old = {r["n"]: r["s"] for r in prev["repos"]}
+    return {x["full_name"]: x["stars"] - old.get(x["full_name"], x["stars"]) for x in current["repos"]}, prev["fecha"]
+
+
+DELTAS_TOP, CORTE_TOP = deltas("top", TOP_DATA)
+DELTAS_TRE, CORTE_TRE = deltas("tre", TRE_DATA)
+DELTAS = json.dumps({"500": DELTAS_TOP, "tre": DELTAS_TRE}, ensure_ascii=False)
+CORTES = json.dumps({"actual": TOP_DATA.get("fecha", ""), "anterior": CORTE_TOP or ""})
+
+
+def series(kind, current):
+    snaps = sorted(glob.glob(os.path.join(DATA, "history", "*-" + kind + ".json")))
+    por_repo = {}
+    for s in snaps:
+        d = json.load(open(s, encoding="utf-8"))
+        for r in d["repos"]:
+            por_repo.setdefault(r["n"], []).append([d["fecha"], r["s"]])
+    for x in current["repos"]:
+        lst = por_repo.setdefault(x["full_name"], [])
+        if not lst or lst[-1][0] != current.get("fecha", ""):
+            lst.append([current.get("fecha", ""), x["stars"]])
+    return por_repo
+
+
+SERIES = json.dumps({"500": series("top", TOP_DATA), "tre": series("tre", TRE_DATA)}, ensure_ascii=False)
+print("series: puntos por repo (cortes:", len(glob.glob(os.path.join(DATA, "history", "*.json"))), ")")
+print("deltas:", len([v for v in DELTAS_TOP.values() if v]), "con cambio (corte previo:", CORTE_TOP or "ninguno", ")")
 
 # fid, titulo, layout, extra_css, extra_hero
 FILES = [
@@ -51,6 +91,14 @@ h1{font-family:'__DISP__',system-ui,sans-serif;font-weight:800;letter-spacing:-.
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:12px}
 .pick{border:1px solid var(--acc);color:var(--acc);background:transparent;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;font-family:inherit;margin-top:6px}
 .pick.on{background:var(--acc);color:var(--acctext)}
+.modowrap{position:relative;display:inline-block}
+#modobtn{border:1px solid var(--acc);color:var(--acc);background:transparent;border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:700;font-family:inherit}
+#modomenu{display:none;position:absolute;top:110%;left:0;z-index:20;min-width:230px;max-height:320px;overflow:auto;padding:6px}
+#modomenu.open{display:block}
+#modomenu a{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--ink)}
+#modomenu a:hover{background:color-mix(in srgb, var(--ink) 8%, transparent)}
+#modomenu a.cur{font-weight:800}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid var(--line);flex-shrink:0;align-self:center}
 .bdg{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;margin:1px 2px;color:var(--mut)}
 .age{font-family:'JetBrains Mono',monospace;background:var(--acc);color:var(--acctext);font-weight:700;border-radius:8px;padding:4px 10px;white-space:nowrap}
 a{color:var(--acc)}
@@ -74,6 +122,7 @@ __EXTRA_CSS__
 <h1>__TITLE__</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 __EXTRA_HERO__
+<div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Modo: __TITLE__ ▾</button><div id="modomenu" class="card" role="menu"></div></div>
 <div class="seg noprint" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
 <div class="seg noprint" id="dates" style="display:none" role="group" aria-label="Rango de fechas">
 <button data-r="5" class="on">Últimos 5 días</button><button data-r="15">Últimos 15 días</button><button data-r="31">El mes</button>
@@ -83,6 +132,9 @@ __EXTRA_HERO__
 <label class="mut" for="q">Buscar</label><input id="q" placeholder="Por ejemplo: agentes, python, editores...">
 <label class="mut" for="c">Categoría</label><select id="c"><option value="">Todas</option></select>
 <label class="mut" for="s">Ordenar por</label><select id="s"><option value="stars">Estrellas</option><option value="new">Más nuevos</option><option value="forks">Bifurcaciones</option></select>
+<label class="mut" for="lic">Licencia</label><select id="lic"><option value="">Todas</option><option value="MIT">MIT</option><option value="perm">Permisivas (MIT/Apache/BSD)</option><option value="copy">Copyleft (revisar)</option></select>
+<label class="mut"><input type="checkbox" id="vivo"> Solo vivos</label>
+<label class="mut"><input type="checkbox" id="noaw"> Sin awesome-lists</label>
 <span id="n" class="mut"></span></div>
 <div class="dl noprint">
 <button id="bcsv">CSV</button><button id="bxlsx">Excel (filtrado)</button>
@@ -92,13 +144,18 @@ __EXTRA_HERO__
 <button id="bfav">★ Mis elegidos (<span id="favc">0</span>)</button>
 <button id="fxlsx">Excel elegidos</button><button id="fpdf">PDF elegidos</button><button id="fcsv">CSV elegidos</button>
 <button id="fclear">Limpiar</button><span id="favmsg" class="mut"></span></div>
+<div id="mov"></div>
 <div class="pg"><button id="prev">&lsaquo;</button><span id="p" class="mut"></span><button id="next">&rsaquo;</button></div>
 <div id="g"></div>
 <div class="pg"><button id="prev2">&lsaquo;</button><span id="p2" class="mut"></span><button id="next2">&rsaquo;</button></div>
+<p class="mut noprint" style="text-align:center;font-size:13px"><a href="como-esta-hecho.html">Cómo está hecho este ranking</a></p>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const DB500 = __DB500__;
+const DELTAS = __DELTAS__;
+const SERIES = __SERIES__;
+const CORTES = __CORTES__;
 const DBTRE = __DBTRE__;
 const LAYOUT = "__LAYOUT__";
 const HOY = '2026-09-14';
@@ -157,11 +214,28 @@ document.getElementById('d').onchange = e => {
   if (exactDay) document.querySelectorAll('#dates button').forEach(x => x.classList.remove('on'));
   apply();
 };
+const PERMISIVAS = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "CC0-1.0"];
+function esCopyleft(lic){ return /GPL|AGPL|LGPL/i.test(lic || ""); }
+function mesesSinActividad(x){ const f = x.pushed_at || x.created_at || HOY; return (new Date(HOY) - new Date(f)) / 2592000000; }
+function veredicto(x){
+  if (x.archived || esCopyleft(x.license)) return "⚠ revisar: " + (x.archived ? "archivado" : "licencia copyleft");
+  if (mesesSinActividad(x) > 12) return "⚠ revisar: sin actividad 12+ meses";
+  if (PERMISIVAS.includes(x.license)) return "✓ adoptable";
+  return "· sin veredicto";
+}
 function apply(){
   const q = document.getElementById('q').value.toLowerCase(),
-        c = document.getElementById('c').value, s = document.getElementById('s').value;
+        c = document.getElementById('c').value, s = document.getElementById('s').value,
+        lic = document.getElementById('lic').value,
+        vivo = document.getElementById('vivo').checked,
+        noaw = document.getElementById('noaw').checked;
   F = DB().filter(x => {
     if (c && x.categoria !== c) return false;
+    if (lic === "MIT" && x.license !== "MIT") return false;
+    if (lic === "perm" && !PERMISIVAS.includes(x.license)) return false;
+    if (lic === "copy" && !esCopyleft(x.license)) return false;
+    if (vivo && (x.archived || mesesSinActividad(x) > 12)) return false;
+    if (noaw && x.tipo === "awesome-list") return false;
     if (module === 'tre'){
       if (exactDay){ if (x.created_at !== exactDay) return false; }
       else if (daysOld(x.created_at) >= range) return false;
@@ -171,14 +245,30 @@ function apply(){
   F.sort((a,b) => s === 'forks' ? b.forks - a.forks : s === 'new' ? (b.created_at||b.pushed_at||'').localeCompare(a.created_at||a.pushed_at||'') : b.stars - a.stars);
   page = 0; render();
 }
-['q','c','s'].forEach(id => document.getElementById(id).addEventListener('input', apply));
+['q','c','s','lic','vivo','noaw'].forEach(id => document.getElementById(id).addEventListener('input', apply));
 function go(d){ page = Math.min(Math.max(0, page + d), Math.max(0, Math.ceil(F.length/PER) - 1)); render(); window.scrollTo(0,0); }
 document.getElementById('prev').onclick = document.getElementById('prev2').onclick = () => go(-1);
 document.getElementById('next').onclick = document.getElementById('next2').onclick = () => go(1);
+function racha(x){
+  const d = (DELTAS[module] || {})[x.full_name] || 0;
+  return d > 0 ? `<span class="bdg">🔥 +${fmt(d)} desde ${CORTES.anterior}</span>` : '';
+}
+function spark(x){
+  const pts = (SERIES[module] || {})[x.full_name] || [];
+  if (pts.length < 2) return '';
+  const vals = pts.map(p => p[1]);
+  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx - mn) || 1;
+  const step = 100 / (pts.length - 1);
+  const pl = pts.map((p, i) => `${(i * step).toFixed(1)},${(26 - (p[1] - mn) / rg * 24).toFixed(1)}`).join(' ');
+  return `<svg width="100" height="28" viewBox="0 0 100 28" role="img" aria-label="Evolución de estrellas"><polyline points="${pl}" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
+}
 function badges(x){
   const f = module === 'tre' ? x.created_at : x.pushed_at;
   const fl = module === 'tre' ? 'creado el ' : '';
-  return `<span class="bdg">${x.language}</span><span class="bdg">${x.categoria}</span><span class="bdg">${x.license}</span><span class="bdg">${fmt(x.forks)} bifurcaciones</span><span class="bdg">${fl}${f}</span>`;
+  let extra = '';
+  if (x.archived) extra += `<span class="bdg">⛔ archivado</span>`;
+  if (esCopyleft(x.license)) extra += `<span class="bdg">⚠ copyleft</span>`;
+  return `<span class="bdg">${x.language}</span><span class="bdg">${x.categoria}</span><span class="bdg">${x.license}</span><span class="bdg">${fmt(x.forks)} bifurcaciones</span><span class="bdg">${fl}${f}</span>${extra}<div class="mut" style="font-size:12px;margin-top:2px">${veredicto(x)}</div>`;
 }
 function prev(x, w){
   return `<a href="${x.url}" target="_blank" rel="noopener"><img class="prev" loading="lazy" alt="Vista previa de ${x.full_name}" src="https://opengraph.githubassets.com/1/${x.full_name}"></a>`;
@@ -187,7 +277,7 @@ function head(x){
   const tag = module === 'tre' ? `<span class="age">${age(x.created_at)}</span> ` : '';
   const k = module + '|' + x.full_name;
   const picked = !!FAV[k];
-  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong><div>${badges(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
+  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${racha(x)}<div>${badges(x)}</div><div>${spark(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
 }
 document.getElementById('g').addEventListener('click', e => {
   const b = e.target.closest ? e.target.closest('.pick') : null;
@@ -204,6 +294,11 @@ function render(){
   document.getElementById('n').textContent = src.length + ' repositorios' + (showFav ? ' (elegidos)' : '');
   document.getElementById('p').textContent = document.getElementById('p2').textContent = 'Página ' + (page+1) + ' de ' + pages;
   updateFavUI();
+  const dm = DELTAS[module] || {};
+  const movidas = F.filter(x => (dm[x.full_name] || 0) > 0).sort((a, b) => dm[b.full_name] - dm[a.full_name]).slice(0, 5);
+  document.getElementById('mov').innerHTML = movidas.length
+    ? `<div class="card" style="margin-bottom:12px"><strong>🔥 Top movidas desde ${CORTES.anterior}:</strong> ` + movidas.map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.full_name}</a> (+${fmt(dm[x.full_name])})`).join(' · ') + `</div>`
+    : '';
   if (!slice.length){ g.innerHTML = showFav ? '<p class="mut">Aún no elegiste ninguno. Explora y pulsa ☆ Elegir en los que te gusten: se guardan en este navegador.</p>' : '<p class="mut">Sin repositorios con ese filtro. Amplía el rango o cambia la búsqueda.</p>'; return; }
   if (LAYOUT === 'table'){
     g.innerHTML = `<div class="card" style="overflow:auto;padding:0"><table><thead><tr><th scope="col">Puesto</th><th scope="col">Repositorio y qué hace</th><th scope="col">Estrellas</th><th scope="col">Vista previa</th></tr></thead><tbody>` +
@@ -258,7 +353,22 @@ function download(kind, onlyFav){
     window.print(); g.innerHTML = old; render();
   }
 }
-setModule("__MODULE__");
+const MODES = [["01-signal-cards","Signal","#D63A2F"],["02-midnight-console","Consola","#4ADE80"],["04-ledger-table","Libro","#1D4ED8"],["05-tide-glass","Marea","#5EEAD4"],["07-control-tower","Torre","#4F46E5"],["08-atlas-kanban","Atlas","#0284C7"],["09-phosphor-terminal","Fósforo","#4ADE80"],["11-gallery-wall","Galería","#F59E0B"],["14-block-party","Bloque","#FF5C00"],["15-plum-material","Pluma","#7C3AED"],["16-cave-git","Cueva","#2F81F7"],["21-podium","Podio","#FBBF24"],["23-night-drive","Nocturna","#34D399"],["28-abyss","Abismo","#22D3EE"],["29-evergreen","Perenne","#4ADE80"],["30-ember","Brasa","#F97316"],["trending","Tendencias","#22D3EE"]];
+(function(){
+  const menu = document.getElementById('modomenu'), btn = document.getElementById('modobtn');
+  const cur = "__FILE__";
+  menu.innerHTML = MODES.map(m => `<a role="menuitem" data-f="${m[0]}" href="${m[0]}.html" class="${m[0] === cur ? 'cur' : ''}"><span>${m[0] === cur ? '● ' : ''}${m[1]}</span><span class="dot" style="background:${m[2]}"></span></a>`).join('');
+  btn.onclick = e => { e.stopPropagation(); menu.classList.toggle('open'); };
+  document.addEventListener('click', () => menu.classList.remove('open'));
+  menu.addEventListener('click', e => {
+    const a = e.target.closest ? e.target.closest('a') : null;
+    if (!a) return;
+    e.preventDefault();
+    location.href = a.getAttribute('data-f') + '.html?mod=' + module;
+  });
+})();
+const qmod = new URLSearchParams(location.search).get('mod');
+setModule(qmod === 'tre' || qmod === '500' ? qmod : "__MODULE__");
 </script></div></body></html>"""
 
 
@@ -293,7 +403,8 @@ for (fid, title, layout, css, hero) in FILES:
     mod = "tre" if fid == "trending" else "500"
     html = TPL.replace("__TITLE__", title).replace("__LAYOUT__", layout)
     html = html.replace("__EXTRA_CSS__", css).replace("__EXTRA_HERO__", hero)
-    html = html.replace("__MODULE__", mod).replace("__DB500__", TOP).replace("__DBTRE__", TRE)
+    html = html.replace("__MODULE__", mod).replace("__DB500__", TOP).replace("__DBTRE__", TRE).replace("__FILE__", fid)
+    html = html.replace("__DELTAS__", DELTAS).replace("__SERIES__", SERIES).replace("__CORTES__", CORTES)
     disp, body, mono, bg, card, ink, mut, acc, acctext, rad = PAL[fid]
     html = html.replace("__FONTLINK__", fontlink(disp, body, mono))
     html = html.replace("__DISP__", disp).replace("__BODY__", body).replace("__MONO__", mono)
