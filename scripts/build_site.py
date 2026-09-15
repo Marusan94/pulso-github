@@ -13,19 +13,22 @@ print("top:", len(TOP) // 1024, "KB | tre:", len(TRE) // 1024, "KB")
 
 
 def deltas(kind, current):
-    """Diferencia de estrellas vs el snapshot anterior. {} si es el primer corte."""
+    """Diferencia de estrellas y puesto previo vs el snapshot anterior."""
     snaps = sorted(glob.glob(os.path.join(DATA, "history", "*-" + kind + ".json")))
     prevs = [s for s in snaps if os.path.basename(s)[:10] < current.get("fecha", "")]
     if not prevs:
-        return {}, ""
+        return {}, "", {}
     prev = json.load(open(prevs[-1], encoding="utf-8"))
     old = {r["n"]: r["s"] for r in prev["repos"]}
-    return {x["full_name"]: x["stars"] - old.get(x["full_name"], x["stars"]) for x in current["repos"]}, prev["fecha"]
+    prank = {r["n"]: i + 1 for i, r in enumerate(sorted(prev["repos"], key=lambda r: -r["s"]))}
+    diffs = {x["full_name"]: x["stars"] - old.get(x["full_name"], x["stars"]) for x in current["repos"]}
+    return diffs, prev["fecha"], prank
 
 
-DELTAS_TOP, CORTE_TOP = deltas("top", TOP_DATA)
-DELTAS_TRE, CORTE_TRE = deltas("tre", TRE_DATA)
+DELTAS_TOP, CORTE_TOP, RANK_TOP = deltas("top", TOP_DATA)
+DELTAS_TRE, CORTE_TRE, RANK_TRE = deltas("tre", TRE_DATA)
 DELTAS = json.dumps({"500": DELTAS_TOP, "tre": DELTAS_TRE}, ensure_ascii=False)
+RANKSPREV = json.dumps({"500": RANK_TOP, "tre": RANK_TRE}, ensure_ascii=False)
 CORTES = json.dumps({"actual": TOP_DATA.get("fecha", ""), "anterior": CORTE_TOP or ""})
 
 
@@ -119,7 +122,7 @@ __EXTRA_CSS__
 </style></head>
 <body><div class="wrap">
 <nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
-<p class="mut mono">700 registros incluidos en este archivo &middot; corte 14 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
+<p class="mut mono">700 registros incluidos en este archivo &middot; corte 15 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
 <h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 __EXTRA_HERO__
@@ -127,12 +130,12 @@ __EXTRA_HERO__
 <div class="seg noprint" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
 <div class="seg noprint" id="dates" style="display:none" role="group" aria-label="Rango de fechas">
 <button data-r="5" class="on">Últimos 5 días</button><button data-r="15">Últimos 15 días</button><button data-r="31">El mes</button>
-<span class="mut" style="align-self:center">o por un día exacto:</span><input type="date" id="d" min="2026-08-15" max="2026-09-14" aria-label="Filtrar por día exacto">
+<span class="mut" style="align-self:center">o por un día exacto:</span><input type="date" id="d" min="2026-08-15" max="2026-09-15" aria-label="Filtrar por día exacto">
 </div>
 <div class="bar">
 <label class="mut" for="q">Buscar</label><input id="q" placeholder="Por ejemplo: agentes, python, editores...">
 <label class="mut" for="c">Categoría</label><select id="c"><option value="">Todas</option></select>
-<label class="mut" for="s">Ordenar por</label><select id="s"><option value="stars">Estrellas</option><option value="new">Más nuevos</option><option value="forks">Bifurcaciones</option></select>
+<label class="mut" for="s">Ordenar por</label><select id="s"><option value="stars">Estrellas</option><option value="new">Más nuevos</option><option value="forks">Bifurcaciones</option><option value="up">Mayor subida</option></select>
 <label class="mut" for="lic">Licencia</label><select id="lic"><option value="">Todas</option><option value="MIT">MIT</option><option value="perm">Permisivas (MIT/Apache/BSD)</option><option value="copy">Copyleft (revisar)</option></select>
 <label class="mut"><input type="checkbox" id="vivo"> Solo vivos</label>
 <label class="mut"><input type="checkbox" id="noaw"> Sin awesome-lists</label>
@@ -159,7 +162,8 @@ const SERIES = __SERIES__;
 const CORTES = __CORTES__;
 const DBTRE = __DBTRE__;
 const LAYOUT = "__LAYOUT__";
-const HOY = '2026-09-14';
+const RANKSPREV = __RANKSPREV__;
+const HOY = '2026-09-15';
 let module = "__MODULE__", range = 5, exactDay = '', F = [], page = 0, showFav = false;
 let FAV = {};
 try { FAV = JSON.parse(localStorage.getItem('gr-favs-v1') || '{}'); } catch(e){ FAV = {}; }
@@ -170,6 +174,19 @@ function updateFavUI(){
   document.getElementById('bfav').innerHTML = showFav ? 'Ver todos' : '★ Mis elegidos (<span id="favc">' + favCount() + '</span>)';
   const m = document.getElementById('favmsg');
   if (m) m.textContent = showFav ? 'Viendo solo tus elegidos.' : '';
+}
+function movBadge(x){
+  if (!CORTES.anterior) return '';
+  const pr = (RANKSPREV[module] || {})[x.full_name];
+  if (!pr) return `<span class="bdg">🆕 nuevo en el ranking</span>`;
+  const d = pr - x.rank;
+  if (d > 0) return `<span class="bdg" style="border-color:#16a34a;color:#16a34a;font-weight:800">▲${d} puestos</span>`;
+  if (d < 0) return `<span class="bdg" style="border-color:#dc2626;color:#dc2626;font-weight:800">▼${-d} puestos</span>`;
+  return `<span class="bdg">═ igual</span>`;
+}
+function rankGain(x){
+  const pr = (RANKSPREV[module] || {})[x.full_name];
+  return pr ? pr - x.rank : -9999;
 }
 function favRows(){
   const out = [];
@@ -243,7 +260,7 @@ function apply(){
     }
     return (x.full_name + ' ' + (x.descripcion_es||'') + ' ' + (x.description||'') + ' ' + x.language).toLowerCase().includes(q);
   });
-  F.sort((a,b) => s === 'forks' ? b.forks - a.forks : s === 'new' ? (b.created_at||b.pushed_at||'').localeCompare(a.created_at||a.pushed_at||'') : b.stars - a.stars);
+  F.sort((a,b) => s === 'forks' ? b.forks - a.forks : s === 'new' ? (b.created_at||b.pushed_at||'').localeCompare(a.created_at||a.pushed_at||'') : s === 'up' ? ((rankGain(b) - rankGain(a)) || (((DELTAS[module]||{})[b.full_name]||0) - ((DELTAS[module]||{})[a.full_name]||0))) : b.stars - a.stars);
   page = 0; render();
 }
 ['q','c','s','lic','vivo','noaw'].forEach(id => document.getElementById(id).addEventListener('input', apply));
@@ -278,7 +295,7 @@ function head(x){
   const tag = module === 'tre' ? `<span class="age">${age(x.created_at)}</span> ` : '';
   const k = module + '|' + x.full_name;
   const picked = !!FAV[k];
-  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${racha(x)}<div>${badges(x)}</div><div>${spark(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
+  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${movBadge(x)} ${racha(x)}<div>${badges(x)}</div><div>${spark(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
 }
 document.getElementById('g').addEventListener('click', e => {
   const b = e.target.closest ? e.target.closest('.pick') : null;
@@ -296,10 +313,14 @@ function render(){
   document.getElementById('p').textContent = document.getElementById('p2').textContent = 'Página ' + (page+1) + ' de ' + pages;
   updateFavUI();
   const dm = DELTAS[module] || {};
-  const movidas = F.filter(x => (dm[x.full_name] || 0) > 0).sort((a, b) => dm[b.full_name] - dm[a.full_name]).slice(0, 5);
-  document.getElementById('mov').innerHTML = movidas.length
-    ? `<div class="card" style="margin-bottom:12px"><strong>🔥 Top movidas desde ${CORTES.anterior}:</strong> ` + movidas.map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.full_name}</a> (+${fmt(dm[x.full_name])})`).join(' · ') + `</div>`
-    : '';
+  const subs = F.filter(x => rankGain(x) > 0).sort((a, b) => (rankGain(b) - rankGain(a)) || ((dm[b.full_name] || 0) - (dm[a.full_name] || 0))).slice(0, 5);
+  const caen = F.filter(x => rankGain(x) < 0 && rankGain(x) > -9999).sort((a, b) => rankGain(a) - rankGain(b)).slice(0, 3);
+  const nuevos = F.filter(x => rankGain(x) === -9999);
+  let movHtml = '';
+  if (subs.length) movHtml += `<div class="card" style="margin-bottom:12px"><strong>🚀 Top subidas desde ${CORTES.anterior}:</strong> ` + subs.map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.full_name}</a> (▲${rankGain(x)} · +${fmt(dm[x.full_name] || 0)})`).join(' · ') + `</div>`;
+  if (caen.length) movHtml += `<div class="card" style="margin-bottom:12px"><strong>📉 Caídas:</strong> ` + caen.map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.full_name}</a> (▼${-rankGain(x)})`).join(' · ') + `</div>`;
+  if (nuevos.length) movHtml += `<div class="card" style="margin-bottom:12px"><strong>🆕 Nuevos en el ranking:</strong> ` + nuevos.slice(0, 8).map(x => `<a href="${x.url}" target="_blank" rel="noopener">${x.full_name}</a>`).join(' · ') + (nuevos.length > 8 ? ` · y ${nuevos.length - 8} más` : '') + `</div>`;
+  document.getElementById('mov').innerHTML = movHtml;
   if (!slice.length){ g.innerHTML = showFav ? '<p class="mut">Aún no elegiste ninguno. Explora y pulsa ☆ Elegir en los que te gusten: se guardan en este navegador.</p>' : '<p class="mut">Sin repositorios con ese filtro. Amplía el rango o cambia la búsqueda.</p>'; return; }
   if (LAYOUT === 'table'){
     g.innerHTML = `<div class="card" style="overflow:auto;padding:0"><table><thead><tr><th scope="col">Puesto</th><th scope="col">Repositorio y qué hace</th><th scope="col">Estrellas</th><th scope="col">Vista previa</th></tr></thead><tbody>` +
@@ -335,16 +356,27 @@ document.getElementById('fclear').onclick = () => { FAV = {}; saveFav(); showFav
 function download(kind, onlyFav){
   const rows = onlyFav ? favRows() : F;
   if (onlyFav && !rows.length){ alert('Aún no elegiste ninguno. Pulsa ☆ Elegir primero.'); return; }
+  const cambio = x => {
+    for (const m of ['500', 'tre']){
+      const pr = (RANKSPREV[m] || {})[x.full_name];
+      if (pr !== undefined){
+        const arr = m === '500' ? DB500 : DBTRE;
+        const cur = arr.findIndex(y => y.full_name === x.full_name) + 1;
+        return {g: pr - cur, d: (DELTAS[m] || {})[x.full_name] || 0};
+      }
+    }
+    return {g: 0, d: 0};
+  };
   if (kind === 'csv' || kind === 'json'){
     const txt = kind === 'json' ? JSON.stringify(rows, null, 1) :
-      'puesto,nombre,estrellas,bifurcaciones,lenguaje,categoria,licencia,tipo,fecha,url,descripcion,descripcion_original\\n' +
-      rows.map(x => [x.rank, '"'+x.full_name+'"', x.stars, x.forks, x.language, x.categoria, x.license, x.tipo, x.created_at||x.pushed_at, x.url, '"'+(x.descripcion_es||'').replace(/"/g,'""')+'"', '"'+(x.description||'').replace(/"/g,'""')+'"'].join(',')).join('\\n');
+      'puesto,nombre,estrellas,bifurcaciones,lenguaje,categoria,licencia,tipo,fecha,cambio_puestos,cambio_estrellas,url,descripcion,descripcion_original\\n' +
+      rows.map(x => [x.rank, '"'+x.full_name+'"', x.stars, x.forks, x.language, x.categoria, x.license, x.tipo, x.created_at||x.pushed_at, cambio(x).g, cambio(x).d, x.url, '"'+(x.descripcion_es||'').replace(/"/g,'""')+'"', '"'+(x.description||'').replace(/"/g,'""')+'"'].join(',')).join('\\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([txt], {type: kind === 'json' ? 'application/json' : 'text/csv'}));
     a.download = (onlyFav ? 'elegidos-' : '') + fname() + '.' + (kind === 'json' ? 'json' : 'csv'); a.click();
   } else if (kind === 'xlsx'){
     if (typeof XLSX === 'undefined'){ alert('Sin internet para el Excel filtrado. Usa el enlace de Excel completo.'); return; }
-    const ws = XLSX.utils.json_to_sheet(rows.map(x => ({puesto:x.rank, nombre:x.full_name, descripcion:x.descripcion_es, descripcion_original:x.description, estrellas:x.stars, bifurcaciones:x.forks, lenguaje:x.language, categoria:x.categoria, licencia:x.license, tipo:x.tipo, fecha:x.created_at||x.pushed_at, enlace:x.url})));
+    const ws = XLSX.utils.json_to_sheet(rows.map(x => ({puesto:x.rank, nombre:x.full_name, descripcion:x.descripcion_es, descripcion_original:x.description, estrellas:x.stars, bifurcaciones:x.forks, lenguaje:x.language, categoria:x.categoria, licencia:x.license, tipo:x.tipo, fecha:x.created_at||x.pushed_at, cambio_puestos:cambio(x).g, cambio_estrellas:cambio(x).d, enlace:x.url})));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'ranking');
     XLSX.writeFile(wb, (onlyFav ? 'elegidos-' : '') + fname() + '-filtrado.xlsx');
   } else if (kind === 'pdf'){
@@ -405,7 +437,7 @@ for (fid, title, layout, css, hero) in FILES:
     html = TPL.replace("__TITLE__", title).replace("__LAYOUT__", layout)
     html = html.replace("__EXTRA_CSS__", css).replace("__EXTRA_HERO__", hero)
     html = html.replace("__MODULE__", mod).replace("__DB500__", TOP).replace("__DBTRE__", TRE).replace("__FILE__", fid)
-    html = html.replace("__DELTAS__", DELTAS).replace("__SERIES__", SERIES).replace("__CORTES__", CORTES)
+    html = html.replace("__DELTAS__", DELTAS).replace("__SERIES__", SERIES).replace("__CORTES__", CORTES).replace("__RANKSPREV__", RANKSPREV)
     disp, body, mono, bg, card, ink, mut, acc, acctext, rad = PAL[fid]
     html = html.replace("__FONTLINK__", fontlink(disp, body, mono))
     html = html.replace("__DISP__", disp).replace("__BODY__", body).replace("__MONO__", mono)

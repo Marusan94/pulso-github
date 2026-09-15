@@ -82,6 +82,20 @@ def pagina_analiticas():
     return pw, b, pg
 
 
+def test_movimientos_reales():
+    pw, b, pg = pagina("29-evergreen.html")
+    try:
+        assert "Top subidas" in pg.inner_text("#mov")
+        assert pg.eval_on_selector_all(".bdg", "e=>e.filter(x=>x.textContent.includes(String.fromCharCode(9650))).length") > 0
+        pg.select_option("#s", "up")
+        pg.wait_for_timeout(400)
+        primero = pg.inner_text("#g .card")
+        assert "puestos" in primero
+    finally:
+        b.close()
+        pw.stop()
+
+
 def test_modo_cambia_conservando_modulo():
     pw, b, pg = pagina("29-evergreen.html")
     try:

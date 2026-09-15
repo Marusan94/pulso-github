@@ -51,7 +51,7 @@ for i, it in enumerate(all_items, start=1):
         "tipo": tipo(it.get("full_name"), it.get("description")),
     })
 with open(os.path.join(out_dir, "trending.json"), "w", encoding="utf-8") as f:
-    json.dump({"fecha": "2026-09-14", "ventana": "creados desde 2026-08-15", "total": len(repos), "repos": repos}, f, ensure_ascii=False)
+    json.dump({"fecha": "2026-09-15", "ventana": "creados desde 2026-08-15", "total": len(repos), "repos": repos}, f, ensure_ascii=False)
 print("saved trending:", len(repos))
 for x in repos[:8]:
     print(x["created_at"], x["stars"], x["full_name"])

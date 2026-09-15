@@ -52,5 +52,5 @@ for i,it in enumerate(all_items[:500], start=1):
         "tipo": tipo(it.get("full_name"), it.get("description")),
     })
 with open(os.path.join(out_dir,"repos.json"),"w",encoding="utf-8") as f:
-    json.dump({"fecha":"2026-09-14","total":len(repos),"repos":repos}, f, ensure_ascii=False)
+    json.dump({"fecha":"2026-09-15","total":len(repos),"repos":repos}, f, ensure_ascii=False)
 print("saved", len(repos))
