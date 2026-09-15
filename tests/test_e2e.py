@@ -53,6 +53,33 @@ def test_filtro_mit_solo_mit():
         pw.stop()
 
 
+def test_analytics_curva_radar_y_tooltip():
+    pw, b, pg = pagina_analiticas()
+    try:
+        assert pg.eval_on_selector_all("#chart circle", "e=>e.length") == 30
+        assert pg.eval_on_selector_all("#radar polygon", "e=>e.length") >= 5
+        pg.hover("#chart circle[data-i='3']")
+        pg.wait_for_timeout(300)
+        assert pg.is_visible("#tip")
+        assert "estrellas" in pg.inner_text("#tip")
+        pg.click("#mtre")
+        pg.wait_for_timeout(400)
+        assert "200" in pg.inner_text("#stats")
+    finally:
+        b.close()
+        pw.stop()
+
+
+def pagina_analiticas():
+    from playwright.sync_api import sync_playwright as _sp
+    pw = _sp().start()
+    b = pw.chromium.launch()
+    pg = b.new_page(viewport={"width": 1280, "height": 900})
+    pg.goto("file:///" + os.path.join(SITE, "analiticas.html").replace("\\", "/"))
+    pg.wait_for_timeout(1200)
+    return pw, b, pg
+
+
 def test_modo_cambia_conservando_modulo():
     pw, b, pg = pagina("29-evergreen.html")
     try:
