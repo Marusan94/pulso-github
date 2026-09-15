@@ -69,7 +69,7 @@ FILES = [
 ]
 
 TPL = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>__TITLE__ - Ranking GitHub</title>
+<title>Pulso GitHub · __TITLE__</title>
 __FONTLINK__
 <style>
 :root{--bg:__BG__;--card:__CARD__;--ink:__INK__;--mut:__MUT__;--acc:__ACC__;--acctext:__ACCTEXT__;--rad:__RAD__;--line:color-mix(in srgb, var(--ink) 20%, transparent)}
@@ -120,7 +120,7 @@ __EXTRA_CSS__
 <body><div class="wrap">
 <nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
 <p class="mut mono">700 registros incluidos en este archivo &middot; corte 14 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
-<h1>__TITLE__</h1>
+<h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 __EXTRA_HERO__
 <div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Modo: __TITLE__ ▾</button><div id="modomenu" class="card" role="menu"></div></div>
