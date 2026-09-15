@@ -41,13 +41,14 @@ a{color:#4ADE80}
 <div class="card"><h3>Curva del ranking <small class="mut">— pasa el cursor para previsualizar</small></h3>
 <div class="seg" role="group" aria-label="Tipo de curva" style="max-width:420px"><button id="cRank" class="on">Ranking actual</button><button id="cTime">En el tiempo</button></div>
 <div id="chartwrap" style="position:relative"><svg id="chart" viewBox="0 0 960 340" style="width:100%;display:block" role="img" aria-label="Gráfica de estrellas"></svg><div id="tip" class="card" style="display:none;position:absolute;pointer-events:none;max-width:280px;z-index:5"></div></div>
-<p class="mut" id="chartnote" style="font-size:13px"></p></div>
+<p class="mut" id="chartnote" style="font-size:13px"></p>
+<p class="mut" id="chartlegend" style="font-size:13px"></p></div>
 <div class="grid2">
 <div class="card"><h3>Por categoría</h3><div id="cats"></div></div>
 <div class="card"><h3>Lenguajes top</h3><div id="langs"></div></div>
 </div>
 <div class="grid2">
-<div class="card"><h3>Radar por categoría <small class="mut">— Los 500 vs Tendencias</small></h3><div id="radar"></div></div>
+<div class="card"><h3>Radar por categoría <small class="mut">— puntos numerados por puesto</small></h3><div id="rdwrap" style="position:relative"><div id="radar"></div><div id="rtip" class="card" style="display:none;position:absolute;pointer-events:none;max-width:260px;z-index:5"></div></div><p class="mut" id="rdlegend" style="font-size:13px"></p></div>
 <div class="card"><h3>Licencias</h3><div id="lics"></div></div>
 </div>
 <div class="card"><h3>🔥 Top movidas</h3><div id="mov"></div></div>
@@ -135,10 +136,12 @@ function dibujaCurva(){
       let d = '', started = false, area = '';
       pts.forEach((v, i) => { if (v == null) return; d += (started ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); started = true; });
       const line = `<path d="${d}" fill="none" stroke="${pal[j % 8]}" stroke-width="2.5"><title>${t.k}</title></path>`;
-      h += line + `<text x="${W - P + 6}" y="${Y(S[t.k][S[t.k].length-1][1]).toFixed(1)}" fill="${pal[j % 8]}" font-size="15">${t.k.split('/')[1] || t.k}</text>`;
+      const dots = pts.map((v, i) => v == null ? '' : `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="${pal[j % 8]}"><title>${t.k}: ${fmt(v)}</title></circle>`).join('');
+      h += line + dots + `<text x="${W - P + 6}" y="${Y(S[t.k][S[t.k].length-1][1]).toFixed(1)}" fill="${pal[j % 8]}" font-size="15">${t.k.split('/')[1] || t.k}</text>`;
     });
     svg.innerHTML = h;
     note.textContent = 'Evolución por corte semanal (top 8 del módulo). Pasa el cursor sobre cada línea para ver el repo.';
+    document.getElementById('chartlegend').textContent = `Viendo top 8 de ${module === '500' ? 'Los 500' : 'Tendencias'} en ${fechas.length} cortes · del ${fechas[0]} al ${fechas[fechas.length - 1]}.`;
     return;
   }
   const D = DB().slice().sort((a, b) => b.stars - a.stars).slice(0, 30);
@@ -154,9 +157,12 @@ function dibujaCurva(){
     const v = mn + rg * j / 2, y = Y(v);
     h += `<line x1="${P}" y1="${y}" x2="${W - P}" y2="${y}" stroke="currentColor" opacity=".15"/><text x="${P - 6}" y="${y + 5}" fill="currentColor" font-size="14" text-anchor="end" opacity=".6">${fmt(Math.round(Math.pow(10, v)))}</text>`;
   });
-  h += D.map((x, i) => `<circle data-i="${i}" cx="${X(i).toFixed(1)}" cy="${Y(lvs[i]).toFixed(1)}" r="7" fill="transparent"/>`).join('');
+  h += D.map((x, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(lvs[i]).toFixed(1)}" r="4.5" fill="var(--card, #10281A)" stroke="${acc}" stroke-width="2.5" style="pointer-events:none"/>`).join('');
+  h += D.slice(0, 5).map((x, i) => `<text x="${X(i).toFixed(1)}" y="${(Y(lvs[i]) - 10).toFixed(1)}" fill="currentColor" font-size="15" font-weight="800" text-anchor="middle">#${x.rank}</text>`).join('');
+  h += D.map((x, i) => `<circle data-i="${i}" cx="${X(i).toFixed(1)}" cy="${Y(lvs[i]).toFixed(1)}" r="11" fill="transparent"/>`).join('');
   svg.innerHTML = h;
   note.textContent = 'Top 30 del módulo en escala logarítmica, como una gráfica de trading: cae rápido y la cola es larga.';
+  document.getElementById('chartlegend').textContent = `Viendo ${D.length} repos de ${module === '500' ? 'Los 500' : 'Tendencias'} · líder ${D[0].full_name} con ${fmt(D[0].stars)} estrellas · corte ${CORTE || HOY}.`;
   window.__curva = D;
   svg.querySelectorAll('circle').forEach(c => {
     c.addEventListener('mousemove', e => {
@@ -171,19 +177,59 @@ function dibujaCurva(){
   });
 }
 function dibujaRadar(){
-  const box = document.getElementById('radar');
+  const box = document.getElementById('radar'), tip = document.getElementById('rtip');
   const cats = ["IA/LLM", "Frontend", "Educación/Recursos", "Backend/DevOps", "Templates", "Seguridad", "DevTools"];
-  const cuenta = db => { const m = {}; db.forEach(x => m[x.categoria] = (m[x.categoria] || 0) + 1); return cats.map(c => m[c] || 0); };
-  const a = cuenta(DB500), b = cuenta(DBTRE);
-  const mx = Math.max(...a, ...b, 1), S = 260, C = 150, R = 110;
-  const pt = (v, i, n) => { const an = -Math.PI / 2 + i * 2 * Math.PI / n, r = v / mx * R; return [C + r * Math.cos(an), C + r * Math.sin(an)]; };
-  let h = `<svg viewBox="-32 -12 364 324" style="width:100%;max-width:380px;display:block;margin:auto" role="img" aria-label="Radar por categoría">`;
-  [0.33, 0.66, 1].forEach(f => { h += `<polygon points="${cats.map((c, i) => pt(f * mx, i, cats.length).map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="currentColor" opacity=".2"/>`; });
-  const poly = (vals, col, op) => `<polygon points="${vals.map((v, i) => pt(v, i, vals.length).map(x => x.toFixed(1)).join(',')).join(' ')}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-width="2"/>`;
-  h += poly(a, '#4ADE80', .25) + poly(b, '#22D3EE', .25);
-  cats.forEach((c, i) => { const p = pt(mx * 1.18, i, cats.length); h += `<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" fill="currentColor" font-size="12" text-anchor="middle">${c.split('/')[0]}</text>`; });
-  h += `</svg><p class="mut" style="font-size:13px"><span style="color:#4ADE80">■</span> Los 500 &nbsp; <span style="color:#22D3EE">■</span> Tendencias</p>`;
+  const D = DB();
+  const S = 560, C = 280, R = 205;
+  const lvs = D.map(x => Math.log10(Math.max(1, x.stars)));
+  const mn = Math.min(...lvs), mx = Math.max(...lvs), rg = (mx - mn) || 1;
+  const radio = s => R - (Math.log10(Math.max(1, s)) - mn) / rg * (R - 34);
+  const pal = ['#4ADE80', '#22D3EE', '#FBBF24', '#F472B6', '#A78BFA', '#FB7185', '#34D399'];
+  let h = `<svg viewBox="-40 -20 640 600" style="width:100%;display:block" role="img" aria-label="Radar de repositorios por categoría">`;
+  h += `<circle cx="${C}" cy="${C}" r="16" fill="none" stroke="currentColor" opacity=".5"/><text x="${C}" y="${C + 5}" fill="currentColor" font-size="13" text-anchor="middle" opacity=".7">TOP</text>`;
+  [0.35, 0.7].forEach(f => { h += `<circle cx="${C}" cy="${C}" r="${(R * f).toFixed(1)}" fill="none" stroke="currentColor" opacity=".15"/>`; });
+  cats.forEach((c, i) => {
+    const a0 = -Math.PI / 2 + (i - 0.5) * 2 * Math.PI / cats.length;
+    const a1 = -Math.PI / 2 + (i + 0.5) * 2 * Math.PI / cats.length;
+    const x0 = C + R * Math.cos(a0), y0 = C + R * Math.sin(a0), x1 = C + R * Math.cos(a1), y1 = C + R * Math.sin(a1);
+    h += `<path d="M${C} ${C} L${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${pal[i % 7]}" fill-opacity="${i % 2 ? 0.05 : 0.1}"/>`;
+    h += `<line x1="${C}" y1="${C}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="currentColor" opacity=".2"/>`;
+    const am = -Math.PI / 2 + i * 2 * Math.PI / cats.length;
+    const lx = C + (R + 34) * Math.cos(am), ly = C + (R + 34) * Math.sin(am);
+    h += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="currentColor" font-size="15" text-anchor="middle">${c.split('/')[0]}</text>`;
+  });
+  const usados = [];
+  cats.forEach((c, i) => {
+    const top = D.filter(x => x.categoria === c).sort((a, b) => b.stars - a.stars).slice(0, 6);
+    const am = -Math.PI / 2 + i * 2 * Math.PI / cats.length, spread = (2 * Math.PI / cats.length) * 0.62;
+    top.forEach((x, j) => {
+      const an = am + (top.length > 1 ? (j / (top.length - 1) - 0.5) * spread : 0);
+      const r = Math.min(R - 8, Math.max(30, radio(x.stars) + (j % 2 ? 9 : -9)));
+      const cx = C + r * Math.cos(an), cy = C + r * Math.sin(an);
+      const grande = x.rank <= 3;
+      usados.push({x, cx, cy});
+      h += `<circle data-k="${x.full_name}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${grande ? 11 : 8}" fill="${pal[i % 7]}" fill-opacity=".25" stroke="${pal[i % 7]}" stroke-width="2" style="cursor:pointer"/>`;
+      h += `<text x="${cx.toFixed(1)}" y="${(cy + 4).toFixed(1)}" font-size="${grande ? 11 : 9}" font-weight="800" text-anchor="middle" fill="currentColor" style="pointer-events:none">${x.rank}</text>`;
+    });
+  });
+  h += `</svg>`;
   box.innerHTML = h;
+  document.getElementById('rdlegend').textContent = `Cada punto es un repo y el número es su puesto. Más cerca del centro = más estrellas. Sectores = categorías. Mostrando ${usados.length} repos (top 6 por categoría).`;
+  window.__rd = {};
+  usados.forEach(u => window.__rd[u.x.full_name] = u.x);
+  box.querySelectorAll('circle[data-k]').forEach(c => {
+    const show = e => {
+      const x = window.__rd[c.getAttribute('data-k')];
+      const lic = !x.license || x.license === 'NOASSERTION' || x.license === '—' ? 'sin dato' : x.license;
+      tip.innerHTML = `<strong>#${x.rank} ${x.full_name}</strong><br>${fmt(x.stars)} estrellas · ${x.language} · ${lic}<br><small>${(x.descripcion_es || '').slice(0, 110)}</small><br><img src="https://opengraph.githubassets.com/1/${x.full_name}" alt="" style="width:100%;border-radius:8px;margin-top:6px" loading="lazy"><br><a href="${x.url}" target="_blank" rel="noopener">Abrir repo</a>`;
+      tip.style.display = 'block';
+      const r = document.getElementById('rdwrap').getBoundingClientRect();
+      tip.style.left = Math.min(Math.max(0, e.clientX - r.left + 14), r.width - 270) + 'px';
+      tip.style.top = (e.clientY - r.top + 14) + 'px';
+    };
+    c.addEventListener('mousemove', show);
+    c.addEventListener('mouseleave', () => tip.style.display = 'none');
+  });
 }
 
 setModule(module);

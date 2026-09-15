@@ -56,8 +56,10 @@ def test_filtro_mit_solo_mit():
 def test_analytics_curva_radar_y_tooltip():
     pw, b, pg = pagina_analiticas()
     try:
-        assert pg.eval_on_selector_all("#chart circle", "e=>e.length") == 30
-        assert pg.eval_on_selector_all("#radar polygon", "e=>e.length") >= 5
+        assert pg.eval_on_selector_all("#chart circle", "e=>e.length") >= 30
+        assert pg.eval_on_selector_all('#radar circle[data-k]', "e=>e.length") >= 20
+        assert "puestos" in pg.inner_text("#rdlegend") or "puesto" in pg.inner_text("#rdlegend")
+        assert "Viendo 30 repos" in pg.inner_text("#chartlegend")
         pg.hover("#chart circle[data-i='3']")
         pg.wait_for_timeout(300)
         assert pg.is_visible("#tip")
