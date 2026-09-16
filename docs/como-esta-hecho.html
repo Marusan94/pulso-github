@@ -17,7 +17,7 @@ code{background:#111A2E;padding:2px 6px;border-radius:6px}
 <h1>Cómo está hecho</h1>
 <p>Cada lunes un Action despierta, trae datos frescos de la API pública de GitHub y regenera todo el sitio. Sin servidor, sin base de datos: 17 archivos HTML autónomos con los datos dentro.</p>
 <div class="flow">
-<div class="paso"><b>1. API de GitHub.</b> <code>scripts/fetch_top.py</code> trae los 500 con más estrellas y <code>fetch_trending.py</code> los creados el último mes. Pausas incluidas para respetar el límite sin token.</div>
+<div class="paso"><b>1. API de GitHub.</b> <code>scripts/fetch_top.py</code> trae los 500 con más estrellas y <code>fetch_trending.py</code> los creados el último mes. Usa <code>GITHUB_TOKEN</code> cuando existe y pausas en anónimo para respetar el límite.</div>
 <div class="flecha">↓</div>
 <div class="paso"><b>2. Español + taxonomía.</b> <code>describe.py</code> añade descripción en español, categoría (IA, Frontend…) y tipo (herramienta, lista, educativo).</div>
 <div class="flecha">↓</div>
@@ -25,10 +25,14 @@ code{background:#111A2E;padding:2px 6px;border-radius:6px}
 <div class="flecha">↓</div>
 <div class="paso"><b>4. Excel.</b> <code>export_excel.py</code> genera los dos XLSX con hipervínculos y filtros nativos.</div>
 <div class="flecha">↓</div>
-<div class="paso"><b>5. Sitio.</b> <code>build_site.py</code> incrusta ambas bases en cada tema; <code>verify.py</code> valida el JavaScript con node y los datos.</div>
+<div class="paso"><b>5. Sitio.</b> <code>build_site.py</code> incrusta ambas bases en cada tema, <code>build_paginas.py</code> genera Analytics y Noticias, <code>gen_landing.py</code> la portada; <code>verify.py</code> valida el JavaScript con node, los datos y el contraste; los tests E2E lo abren en Chromium de verdad.</div>
 </div>
+<h2>Sesgos y límites honestos</h2>
+<p>Estrellas ≠ calidad: miden popularidad y antigüedad tanto como mérito. El corte del Top 500 está hoy en ~20.000 estrellas, así que proyectos nuevos y buenos tardan en entrar (para eso está Tendencias). Las categorías y descripciones en español se generan por palabras clave (<code>src/ranking/taxonomia.py</code>): a veces se equivocan. Las licencias vienen de la API y a veces faltan (<q>sin dato</q> no significa sin licencia).</p>
 <h2>La API</h2>
 <p>Los mismos JSON del sitio, versionados por fecha en <code>data/history/</code>. Campos en <code>SCHEMA.md</code> del repositorio. Ejemplo:</p>
 <p><code>fetch("data/history/2026-09-14-top.json").then(r =&gt; r.json())</code></p>
 <p class="mut">Refresco: lunes 06:00 UTC vía <code>.github/workflows/refresh.yml</code>.</p>
+<h2>Privacidad</h2>
+<p>En local no hay rastreo de ningún tipo: todo funciona con doble clic y sin cookies. En producción el sitio usa Umami (analytics open source, sin cookies ni banner) solo para contar visitas y saber qué temas se usan.</p>
 </div></body></html>

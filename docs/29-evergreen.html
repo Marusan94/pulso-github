@@ -1,5 +1,11 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pulso GitHub · Perenne</title>
+<meta name="description" content="Ranking GitHub en español con el tema Perenne: los 500 repos con más estrellas y 200 tendencias, filtros y descargas.">
+
+<meta property="og:title" content="Pulso GitHub · Perenne">
+<meta property="og:description" content="Ranking GitHub en español con el tema Perenne: los 500 repos con más estrellas y 200 tendencias, filtros y descargas.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <link href='https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@400;600;700&display=swap' rel='stylesheet'>
 <style>
 :root{--bg:#0A1F14;--card:#10281A;--ink:#E9F5EC;--mut:#8FB69C;--acc:#4ADE80;--acctext:#05281A;--rad:12px;--line:color-mix(in srgb, var(--ink) 20%, transparent)}
@@ -48,12 +54,12 @@ td.num{font-family:'JetBrains Mono',monospace;white-space:nowrap}
 @media print{.bar,.pg,.dl,.seg,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#000;break-inside:avoid}}
 </style></head>
 <body><div class="wrap">
-<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
+<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a id="t-ana" href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a id="t-not" href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
 <p class="mut mono">700 registros incluidos en este archivo &middot; corte 15 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
 <h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 
-<div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Modo: Perenne ▾</button><div id="modomenu" class="card" role="menu"></div></div>
+<div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Tema: Perenne ▾</button><div id="modomenu" class="card" role="menu"></div></div>
 <div class="seg noprint" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
 <div class="seg noprint" id="dates" style="display:none" role="group" aria-label="Rango de fechas">
 <button data-r="5" class="on">Últimos 5 días</button><button data-r="15">Últimos 15 días</button><button data-r="31">El mes</button>
@@ -137,6 +143,7 @@ function fillCats(){
   });
   if ([...csel.options].some(o => o.value === cur)) csel.value = cur;
 }
+function ev(n, d){ try { if (window.umami) umami.track(n, d || {}); } catch(e){} }
 function setModule(m){
   module = m; page = 0; exactDay = '';
   const dd = document.getElementById('d'); if (dd) dd.value = '';
@@ -145,10 +152,13 @@ function setModule(m){
   document.getElementById('dates').style.display = m === 'tre' ? 'flex' : 'none';
   document.getElementById('fullx').href = m === '500' ? 'top500.xlsx' : 'trending.xlsx';
   document.getElementById('fullx').textContent = m === '500' ? 'Excel completo (500 repositorios)' : 'Excel completo (200 repositorios)';
+  const ta = document.getElementById('t-ana'), tn = document.getElementById('t-not');
+  if (ta) ta.href = 'analiticas.html?mod=' + m + '&tema=29-evergreen';
+  if (tn) tn.href = 'noticias.html?mod=' + m + '&tema=29-evergreen';
   fillCats(); apply();
 }
-document.getElementById('m500').onclick = () => setModule('500');
-document.getElementById('mtre').onclick = () => setModule('tre');
+document.getElementById('m500').onclick = () => { ev('modulo', {modulo: '500'}); setModule('500'); };
+document.getElementById('mtre').onclick = () => { ev('modulo', {modulo: 'tre'}); setModule('tre'); };
 document.querySelectorAll('#dates button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#dates button').forEach(x => x.classList.remove('on'));
   b.classList.add('on'); range = +b.dataset.r; exactDay = '';
@@ -198,15 +208,6 @@ function racha(x){
   const d = (DELTAS[module] || {})[x.full_name] || 0;
   return d > 0 ? `<span class="bdg">🔥 +${fmt(d)} desde ${CORTES.anterior}</span>` : '';
 }
-function spark(x){
-  const pts = (SERIES[module] || {})[x.full_name] || [];
-  if (pts.length < 2) return '';
-  const vals = pts.map(p => p[1]);
-  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx - mn) || 1;
-  const step = 100 / (pts.length - 1);
-  const pl = pts.map((p, i) => `${(i * step).toFixed(1)},${(26 - (p[1] - mn) / rg * 24).toFixed(1)}`).join(' ');
-  return `<svg width="100" height="28" viewBox="0 0 100 28" role="img" aria-label="Evolución de estrellas"><polyline points="${pl}" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
-}
 function badges(x){
   const f = module === 'tre' ? x.created_at : x.pushed_at;
   const fl = module === 'tre' ? 'creado el ' : '';
@@ -222,7 +223,7 @@ function head(x){
   const tag = module === 'tre' ? `<span class="age">${age(x.created_at)}</span> ` : '';
   const k = module + '|' + x.full_name;
   const picked = !!FAV[k];
-  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${movBadge(x)} ${racha(x)}<div>${badges(x)}</div><div>${spark(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
+  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${movBadge(x)} ${racha(x)}<div>${badges(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
 }
 document.getElementById('g').addEventListener('click', e => {
   const b = e.target.closest ? e.target.closest('.pick') : null;
@@ -329,4 +330,5 @@ const MODES = [["01-signal-cards","Signal","#D63A2F"],["02-midnight-console","Co
 })();
 const qmod = new URLSearchParams(location.search).get('mod');
 setModule(qmod === 'tre' || qmod === '500' ? qmod : "500");
+ev('tema_visto', {tema: '29-evergreen'});
 </script></div></body></html>

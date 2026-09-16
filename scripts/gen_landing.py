@@ -1,12 +1,20 @@
 """Genera docs/index.html: landing-galeria de los 17 temas."""
-import json, os
+import json, os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+from src.ranking.fechas import fecha_corta
 DATA = os.path.join(ROOT, "data")
 SITE = os.path.join(ROOT, "docs")
 
-top = json.load(open(os.path.join(DATA, "repos.json"), encoding="utf-8"))["repos"]
+TOP_DATA = json.load(open(os.path.join(DATA, "repos.json"), encoding="utf-8"))
+top = TOP_DATA["repos"]
 tre = json.load(open(os.path.join(DATA, "trending.json"), encoding="utf-8"))["repos"]
 tot_stars = sum(x["stars"] for x in top)
+FECHA = fecha_corta(TOP_DATA.get("fecha", ""))
+SITEURL = (os.environ.get("SITE_URL") or "").strip().rstrip("/")
+UMAMI_URL = (os.environ.get("UMAMI_URL") or "").strip()
+UMAMI_ID = (os.environ.get("UMAMI_ID") or "").strip()
+UMAMI = ('<script defer src="%s" data-website-id="%s"></script>' % (UMAMI_URL, UMAMI_ID)) if (UMAMI_URL and UMAMI_ID) else ""
 
 def miles(n):
     if n >= 1000000:
@@ -51,6 +59,8 @@ html = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name=
 <meta property="og:title" content="Ranking GitHub en español">
 <meta property="og:description" content="500 repos + 200 tendencias, 17 temas, filtros y descargas.">
 <meta property="og:type" content="website">
+__CANON__
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -82,7 +92,7 @@ code{background:#111A2E;padding:2px 6px;border-radius:6px}
 </style></head>
 <body><div class="wrap">
 <header class="hero">
-<p style="color:#9AA7C2" class="mono">Datos del 14 sep 2026 · se actualiza solo cada lunes</p>
+<p style="color:#9AA7C2" class="mono">Datos del __FECHA__ · se actualiza solo cada lunes</p>
 <h1>El ranking de GitHub, <em>en español</em> y con 17 caras.</h1>
 <p style="color:#9AA7C2">Los 500 repositorios con más estrellas + 200 tendencias del mes. Filtra, previsualiza y descarga. Cada tema es un archivo independiente que funciona con doble clic.</p>
 <div class="stats">
@@ -107,9 +117,12 @@ q.addEventListener('input', () => {
   const v = q.value.toLowerCase();
   cards.forEach(c => c.style.display = c.dataset.bus.includes(v) ? '' : 'none');
 });
-</script></body></html>"""
+</script>__UMAMI__</body></html>"""
 
 html = html.replace("__N500__", str(len(top))).replace("__NTRE__", str(len(tre)))
+html = html.replace("__UMAMI__", UMAMI)
+html = html.replace("__FECHA__", FECHA)
+html = html.replace("__CANON__", ('<link rel="canonical" href="%s/">' % SITEURL) if SITEURL else "")
 html = html.replace("__STARS__", miles(tot_stars) + " estrellas").replace("__CARDS__", "".join(cards))
 open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(html)
 print("landing ok:", len(html) // 1024, "KB")

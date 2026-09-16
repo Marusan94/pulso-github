@@ -6,21 +6,33 @@ on:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SITE_URL: ${{ vars.SITE_URL }}
+      UMAMI_URL: ${{ vars.UMAMI_URL }}
+      UMAMI_ID: ${{ secrets.UMAMI_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - run: pip install pytest playwright
+      - run: python -m playwright install --with-deps chromium
       - run: python scripts/fetch_top.py
       - run: python scripts/fetch_trending.py
       - run: python scripts/describe.py
+      - run: python scripts/snapshot.py
       - run: python scripts/export_excel.py
       - run: python scripts/build_site.py
+      - run: python scripts/build_paginas.py
+      - run: python scripts/gen_landing.py
+      - run: python scripts/gen_sitemap.py
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
       - run: python scripts/verify.py
+      - run: python -m pytest tests -q
       - run: |
           git config user.name "ranking-bot"
           git config user.email "ranking-bot@users.noreply.github.com"

@@ -1,7 +1,11 @@
 import glob
 import json
 import os
+import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+from src.ranking.historial import deltas, series
+from src.ranking.fechas import fecha_corta, dias_atras
 DATA = os.path.join(ROOT, "data")
 SITE = os.path.join(ROOT, "docs")
 SRC = SITE
@@ -10,43 +14,27 @@ TRE_DATA = json.load(open(os.path.join(DATA, "trending.json"), encoding="utf-8")
 TOP = json.dumps(TOP_DATA["repos"], ensure_ascii=False)
 TRE = json.dumps(TRE_DATA["repos"], ensure_ascii=False)
 print("top:", len(TOP) // 1024, "KB | tre:", len(TRE) // 1024, "KB")
+HOY = TOP_DATA.get("fecha", "")
+FCORTE = fecha_corta(HOY)
+DMIN = dias_atras(HOY, 31)
+UMAMI_URL = (os.environ.get("UMAMI_URL") or "").strip()
+UMAMI_ID = (os.environ.get("UMAMI_ID") or "").strip()
+UMAMI = ('<script defer src="%s" data-website-id="%s"></script>' % (UMAMI_URL, UMAMI_ID)) if (UMAMI_URL and UMAMI_ID) else ""
+SITEURL = (os.environ.get("SITE_URL") or "").strip().rstrip("/")
+if UMAMI:
+    print("umami: tracker de producción activado")
+else:
+    print("umami: desactivado (build local, sin UMAMI_URL/UMAMI_ID)")
 
 
-def deltas(kind, current):
-    """Diferencia de estrellas y puesto previo vs el snapshot anterior."""
-    snaps = sorted(glob.glob(os.path.join(DATA, "history", "*-" + kind + ".json")))
-    prevs = [s for s in snaps if os.path.basename(s)[:10] < current.get("fecha", "")]
-    if not prevs:
-        return {}, "", {}
-    prev = json.load(open(prevs[-1], encoding="utf-8"))
-    old = {r["n"]: r["s"] for r in prev["repos"]}
-    prank = {r["n"]: i + 1 for i, r in enumerate(sorted(prev["repos"], key=lambda r: -r["s"]))}
-    diffs = {x["full_name"]: x["stars"] - old.get(x["full_name"], x["stars"]) for x in current["repos"]}
-    return diffs, prev["fecha"], prank
-
-
-DELTAS_TOP, CORTE_TOP, RANK_TOP = deltas("top", TOP_DATA)
-DELTAS_TRE, CORTE_TRE, RANK_TRE = deltas("tre", TRE_DATA)
+DELTAS_TOP, CORTE_TOP, RANK_TOP = deltas("top", TOP_DATA, DATA)
+DELTAS_TRE, CORTE_TRE, RANK_TRE = deltas("tre", TRE_DATA, DATA)
 DELTAS = json.dumps({"500": DELTAS_TOP, "tre": DELTAS_TRE}, ensure_ascii=False)
 RANKSPREV = json.dumps({"500": RANK_TOP, "tre": RANK_TRE}, ensure_ascii=False)
 CORTES = json.dumps({"actual": TOP_DATA.get("fecha", ""), "anterior": CORTE_TOP or ""})
 
 
-def series(kind, current):
-    snaps = sorted(glob.glob(os.path.join(DATA, "history", "*-" + kind + ".json")))
-    por_repo = {}
-    for s in snaps:
-        d = json.load(open(s, encoding="utf-8"))
-        for r in d["repos"]:
-            por_repo.setdefault(r["n"], []).append([d["fecha"], r["s"]])
-    for x in current["repos"]:
-        lst = por_repo.setdefault(x["full_name"], [])
-        if not lst or lst[-1][0] != current.get("fecha", ""):
-            lst.append([current.get("fecha", ""), x["stars"]])
-    return por_repo
-
-
-SERIES = json.dumps({"500": series("top", TOP_DATA), "tre": series("tre", TRE_DATA)}, ensure_ascii=False)
+SERIES = json.dumps({"500": series("top", TOP_DATA, DATA), "tre": series("tre", TRE_DATA, DATA)}, ensure_ascii=False)
 print("series: puntos por repo (cortes:", len(glob.glob(os.path.join(DATA, "history", "*.json"))), ")")
 print("deltas:", len([v for v in DELTAS_TOP.values() if v]), "con cambio (corte previo:", CORTE_TOP or "ninguno", ")")
 
@@ -73,6 +61,12 @@ FILES = [
 
 TPL = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pulso GitHub · __TITLE__</title>
+<meta name="description" content="__DESC__">
+__CANON__
+<meta property="og:title" content="Pulso GitHub · __TITLE__">
+<meta property="og:description" content="__DESC__">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 __FONTLINK__
 <style>
 :root{--bg:__BG__;--card:__CARD__;--ink:__INK__;--mut:__MUT__;--acc:__ACC__;--acctext:__ACCTEXT__;--rad:__RAD__;--line:color-mix(in srgb, var(--ink) 20%, transparent)}
@@ -121,16 +115,16 @@ __EXTRA_CSS__
 @media print{.bar,.pg,.dl,.seg,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#000;break-inside:avoid}}
 </style></head>
 <body><div class="wrap">
-<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
-<p class="mut mono">700 registros incluidos en este archivo &middot; corte 15 sep 2026 &middot; funciona sin internet salvo vistas previas</p>
+<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a id="t-ana" href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a id="t-not" href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
+<p class="mut mono">700 registros incluidos en este archivo &middot; corte __FCORTE__ &middot; funciona sin internet salvo vistas previas</p>
 <h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 __EXTRA_HERO__
-<div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Modo: __TITLE__ ▾</button><div id="modomenu" class="card" role="menu"></div></div>
+<div class="modowrap noprint"><button id="modobtn" aria-haspopup="true">◐ Tema: __TITLE__ ▾</button><div id="modomenu" class="card" role="menu"></div></div>
 <div class="seg noprint" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
 <div class="seg noprint" id="dates" style="display:none" role="group" aria-label="Rango de fechas">
 <button data-r="5" class="on">Últimos 5 días</button><button data-r="15">Últimos 15 días</button><button data-r="31">El mes</button>
-<span class="mut" style="align-self:center">o por un día exacto:</span><input type="date" id="d" min="2026-08-15" max="2026-09-15" aria-label="Filtrar por día exacto">
+<span class="mut" style="align-self:center">o por un día exacto:</span><input type="date" id="d" min="__DMIN__" max="__HOY__" aria-label="Filtrar por día exacto">
 </div>
 <div class="bar">
 <label class="mut" for="q">Buscar</label><input id="q" placeholder="Por ejemplo: agentes, python, editores...">
@@ -163,7 +157,7 @@ const CORTES = __CORTES__;
 const DBTRE = __DBTRE__;
 const LAYOUT = "__LAYOUT__";
 const RANKSPREV = __RANKSPREV__;
-const HOY = '2026-09-15';
+const HOY = '__HOY__';
 let module = "__MODULE__", range = 5, exactDay = '', F = [], page = 0, showFav = false;
 let FAV = {};
 try { FAV = JSON.parse(localStorage.getItem('gr-favs-v1') || '{}'); } catch(e){ FAV = {}; }
@@ -210,6 +204,7 @@ function fillCats(){
   });
   if ([...csel.options].some(o => o.value === cur)) csel.value = cur;
 }
+function ev(n, d){ try { if (window.umami) umami.track(n, d || {}); } catch(e){} }
 function setModule(m){
   module = m; page = 0; exactDay = '';
   const dd = document.getElementById('d'); if (dd) dd.value = '';
@@ -218,10 +213,13 @@ function setModule(m){
   document.getElementById('dates').style.display = m === 'tre' ? 'flex' : 'none';
   document.getElementById('fullx').href = m === '500' ? 'top500.xlsx' : 'trending.xlsx';
   document.getElementById('fullx').textContent = m === '500' ? 'Excel completo (500 repositorios)' : 'Excel completo (200 repositorios)';
+  const ta = document.getElementById('t-ana'), tn = document.getElementById('t-not');
+  if (ta) ta.href = 'analiticas.html?mod=' + m + '&tema=__FILE__';
+  if (tn) tn.href = 'noticias.html?mod=' + m + '&tema=__FILE__';
   fillCats(); apply();
 }
-document.getElementById('m500').onclick = () => setModule('500');
-document.getElementById('mtre').onclick = () => setModule('tre');
+document.getElementById('m500').onclick = () => { ev('modulo', {modulo: '500'}); setModule('500'); };
+document.getElementById('mtre').onclick = () => { ev('modulo', {modulo: 'tre'}); setModule('tre'); };
 document.querySelectorAll('#dates button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#dates button').forEach(x => x.classList.remove('on'));
   b.classList.add('on'); range = +b.dataset.r; exactDay = '';
@@ -271,15 +269,6 @@ function racha(x){
   const d = (DELTAS[module] || {})[x.full_name] || 0;
   return d > 0 ? `<span class="bdg">🔥 +${fmt(d)} desde ${CORTES.anterior}</span>` : '';
 }
-function spark(x){
-  const pts = (SERIES[module] || {})[x.full_name] || [];
-  if (pts.length < 2) return '';
-  const vals = pts.map(p => p[1]);
-  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx - mn) || 1;
-  const step = 100 / (pts.length - 1);
-  const pl = pts.map((p, i) => `${(i * step).toFixed(1)},${(26 - (p[1] - mn) / rg * 24).toFixed(1)}`).join(' ');
-  return `<svg width="100" height="28" viewBox="0 0 100 28" role="img" aria-label="Evolución de estrellas"><polyline points="${pl}" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
-}
 function badges(x){
   const f = module === 'tre' ? x.created_at : x.pushed_at;
   const fl = module === 'tre' ? 'creado el ' : '';
@@ -295,7 +284,7 @@ function head(x){
   const tag = module === 'tre' ? `<span class="age">${age(x.created_at)}</span> ` : '';
   const k = module + '|' + x.full_name;
   const picked = !!FAV[k];
-  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${movBadge(x)} ${racha(x)}<div>${badges(x)}</div><div>${spark(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
+  return `<div>${tag}<strong>#${x.rank} ${x.full_name}</strong> &middot; <strong>${fmt(x.stars)} estrellas</strong> ${movBadge(x)} ${racha(x)}<div>${badges(x)}</div><p>${(x.descripcion_es||'Sin descripción')}</p><p class="mut"><em>Original:</em> ${(x.description||'')}</p><a href="${x.url}" target="_blank" rel="noopener">${x.url}</a><br><button class="pick${picked ? ' on' : ''}" data-m="${module}" data-n="${x.full_name}">${picked ? '★ Elegido' : '☆ Elegir'}</button></div>`;
 }
 document.getElementById('g').addEventListener('click', e => {
   const b = e.target.closest ? e.target.closest('.pick') : null;
@@ -402,7 +391,8 @@ const MODES = [["01-signal-cards","Signal","#D63A2F"],["02-midnight-console","Co
 })();
 const qmod = new URLSearchParams(location.search).get('mod');
 setModule(qmod === 'tre' || qmod === '500' ? qmod : "__MODULE__");
-</script></div></body></html>"""
+ev('tema_visto', {tema: '__FILE__'});
+</script>__UMAMI__</div></body></html>"""
 
 
 PAL = {
@@ -438,6 +428,10 @@ for (fid, title, layout, css, hero) in FILES:
     html = html.replace("__EXTRA_CSS__", css).replace("__EXTRA_HERO__", hero)
     html = html.replace("__MODULE__", mod).replace("__DB500__", TOP).replace("__DBTRE__", TRE).replace("__FILE__", fid)
     html = html.replace("__DELTAS__", DELTAS).replace("__SERIES__", SERIES).replace("__CORTES__", CORTES).replace("__RANKSPREV__", RANKSPREV)
+    html = html.replace("__HOY__", HOY).replace("__DMIN__", DMIN).replace("__FCORTE__", FCORTE)
+    html = html.replace("__UMAMI__", UMAMI)
+    html = html.replace("__DESC__", "Ranking GitHub en español con el tema %s: los 500 repos con más estrellas y 200 tendencias, filtros y descargas." % title)
+    html = html.replace("__CANON__", ('<link rel="canonical" href="%s/%s.html">\n<meta property="og:url" content="%s/%s.html">' % (SITEURL, fid, SITEURL, fid)) if SITEURL else "")
     disp, body, mono, bg, card, ink, mut, acc, acctext, rad = PAL[fid]
     html = html.replace("__FONTLINK__", fontlink(disp, body, mono))
     html = html.replace("__DISP__", disp).replace("__BODY__", body).replace("__MONO__", mono)

@@ -1,12 +1,20 @@
 import urllib.request, json, time, os
-import os
+import datetime
+import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+from src.ranking.taxonomia import categoria, tipo
 out_dir = os.path.join(ROOT, "data")
 os.makedirs(out_dir, exist_ok=True)
-all_items=[]
-for page in range(1,6):
-    url=f"https://api.github.com/search/repositories?q=stars:%3E20000&sort=stars&order=desc&per_page=100&page={page}"
-    req=urllib.request.Request(url, headers={"User-Agent":"opencode","Accept":"application/vnd.github+json"})
+HOY = datetime.date.today().isoformat()
+TOKEN = os.environ.get("GITHUB_TOKEN", "")
+HEADERS = {"User-Agent": "opencode", "Accept": "application/vnd.github+json"}
+if TOKEN:
+    HEADERS["Authorization"] = "Bearer " + TOKEN
+all_items = []
+for page in range(1, 6):
+    url = f"https://api.github.com/search/repositories?q=stars:%3E20000&sort=stars&order=desc&per_page=100&page={page}"
+    req = urllib.request.Request(url, headers=HEADERS)
     print("fetch page",page,flush=True)
     with urllib.request.urlopen(req, timeout=30) as r:
         data=json.load(r)
@@ -16,23 +24,6 @@ for page in range(1,6):
     if page<5:
         time.sleep(8)
 print("total",len(all_items))
-
-def categoria(name, desc):
-    t=((name or "")+" "+(desc or "")).lower()
-    if any(k in t for k in ["llm","gpt","agent","ai ","artificial","diffusion","stable","langchain","openclaw","hermes","mcp","skill","transformer","chatbot"]): return "IA/LLM"
-    if any(k in t for k in ["react","vue","angular","frontend","css","tailwind","ui ","component"]): return "Frontend"
-    if any(k in t for k in ["awesome","list of","curated","roadmap","interview","tutorial","book","course","learn","primer","university"]): return "Educación/Recursos"
-    if any(k in t for k in ["api","framework","server","database","kubernetes","docker","cli ","terminal","linux","kernel","self-host"]): return "Backend/DevOps"
-    if any(k in t for k in ["admin","dashboard","template","boilerplate"]): return "Templates"
-    if any(k in t for k in ["security","hack","cheat","exploit"]): return "Seguridad"
-    return "DevTools"
-
-def tipo(name, desc):
-    t=((name or "")+" "+(desc or "")).lower()
-    if "awesome" in t or "list of" in t or "curated list" in t: return "awesome-list"
-    if any(k in t for k in ["tutorial","course","book","roadmap","university","primer","learn"]): return "educativo"
-    if any(k in t for k in ["framework","library","kernel"]): return "framework/librería"
-    return "herramienta/app"
 
 repos=[]
 for i,it in enumerate(all_items[:500], start=1):
@@ -52,5 +43,5 @@ for i,it in enumerate(all_items[:500], start=1):
         "tipo": tipo(it.get("full_name"), it.get("description")),
     })
 with open(os.path.join(out_dir,"repos.json"),"w",encoding="utf-8") as f:
-    json.dump({"fecha":"2026-09-15","total":len(repos),"repos":repos}, f, ensure_ascii=False)
+    json.dump({"fecha": HOY,"total":len(repos),"repos":repos}, f, ensure_ascii=False)
 print("saved", len(repos))

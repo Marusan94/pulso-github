@@ -108,3 +108,49 @@ def test_modo_cambia_conservando_modulo():
     finally:
         b.close()
         pw.stop()
+
+
+def test_tema_persiste_en_analytics_y_vuelve_a_inicio():
+    pw, b, pg = pagina("14-block-party.html")
+    try:
+        pg.click("#t-ana")
+        pg.wait_for_timeout(1200)
+        assert pg.url.endswith("analiticas.html?mod=500&tema=14-block-party")
+        assert pg.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(255, 243, 214)"
+        assert pg.get_attribute("#t-home", "href").endswith("14-block-party.html?mod=500")
+        pg.click("#t-home")
+        pg.wait_for_timeout(1200)
+        assert pg.url.endswith("14-block-party.html?mod=500")
+        assert "500 repositorios" in pg.inner_text("#n")
+    finally:
+        b.close()
+        pw.stop()
+
+
+def test_analytics_crecimiento_histograma_y_csv(tmp_path):
+    pw, b, pg = pagina_analiticas()
+    try:
+        assert pg.eval_on_selector_all("#crec .fila", "e=>e.length") >= 5
+        assert pg.eval_on_selector_all("#hist .fila", "e=>e.length") == 8
+        with pg.expect_download() as dl:
+            pg.click("#bcrec")
+        ruta = os.path.join(str(tmp_path), dl.value.suggested_filename)
+        dl.value.save_as(ruta)
+        lineas = open(ruta, encoding="utf-8").read().splitlines()
+        assert lineas[0].startswith("puesto,nombre,estrellas,subida_estrellas")
+        assert len(lineas) >= 6
+    finally:
+        b.close()
+        pw.stop()
+
+
+def test_analytics_serie_por_repo():
+    pw, b, pg = pagina_analiticas()
+    try:
+        pg.click("#chart circle[data-i='0']")
+        pg.wait_for_timeout(400)
+        assert "codecrafters-io" in pg.inner_text("#repotitle")
+        assert pg.eval_on_selector_all("#reposvg circle", "e=>e.length") >= 2
+    finally:
+        b.close()
+        pw.stop()

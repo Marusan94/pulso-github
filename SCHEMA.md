@@ -8,6 +8,7 @@ y `data/history/<fecha>-tre.json` (formato compacto: `n` nombre, `s` estrellas, 
 | Campo | Tipo | Ejemplo |
 |---|---|---|
 | `fecha` | texto `AAAA-MM-DD` | `2026-09-14` |
+| `ventana` | solo trending: rango de creación cubierto | `creados desde 2026-08-15` |
 | `repos[].rank` | entero, puesto en su corte | `1` |
 | `repos[].full_name` | texto `dueño/repo` | `facebook/react` |
 | `repos[].description` | texto original (puede venir vacío) | `The library for...` |

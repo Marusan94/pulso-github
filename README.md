@@ -1,67 +1,88 @@
-# Ranking interactivo de GitHub
+# Pulso GitHub — ranking en español
 
-Explorador en español de los **500 repositorios con más estrellas** de GitHub más un módulo de **tendencias del último mes** (200 repos). 17 temas visuales independientes, todo funciona con doble clic, sin servidor.
+Explorador en español de los **500 repositorios con más estrellas** de GitHub más un módulo de **tendencias de los últimos 30 días** (200 repos). 17 temas visuales independientes, páginas de Analytics y Noticias, y todo funciona con doble clic, sin servidor.
 
-## Demo
+## Verlo en local
 
-Publica la carpeta `docs/` con GitHub Pages y abre cualquiera de los 17 HTML. Cada archivo es autónomo: trae ambas bases de datos embebidas (~700 registros).
+```bash
+# Opción 1: doble clic en cualquier HTML de docs/
+# Opción 2: servidor local (recomendado: activa todas las funciones)
+cd docs && python -m http.server 8901
+# o doble clic en ver.bat → http://localhost:8901/29-evergreen.html
+```
 
-## Publicar con dominio propio (recomendado: Vercel)
+Cada archivo es autónomo: trae ambas bases de datos embebidas (~700 registros). Con `file://` todo funciona salvo el analytics externo (solo producción).
 
-¿Netlify o Vercel? Ambos sirven para este sitio estático, pero **Vercel** gana aquí: deploys de vista previa por cada cambio (muestran proceso profesional), SSL y dominio gratis, y redespliegue automático con cada push. El `netlify.toml` queda como alternativa.
+## Publicar (Vercel o Netlify)
 
-1. Sube el repo a GitHub y entra a [vercel.com](https://vercel.com) → Add New → Project → importa el repo.
-2. En **Root Directory** escribe `docs` (el sitio vive ahí) → Deploy.
-3. Compra o usa tu dominio (ej: en Cloudflare, Namecheap) y en Vercel → Settings → Domains → añade `turanking.dev`.
-4. Apunta el DNS: registro `A` a `76.76.21.21` o `CNAME` a `cname.vercel-dns.com` (Vercel te dice el exacto). SSL se emite solo.
-5. Cambia `TU-DOMINIO` por tu dominio en `docs/robots.txt`, regenera el sitemap (`python scripts/gen_sitemap.py` con tu dominio en `BASE`) y haz push.
+1. Sube el repo a GitHub e importa el proyecto (Root Directory: `docs`).
+2. Define tu dominio y ponlo en la variable `SITE_URL` del proveedor o de Actions (se usa para sitemap, canonical y OG). Sin ella se publica igual, sin esas etiquetas.
+3. **Analytics (opcional, solo producción)**: crea un sitio en [Umami](https://umami.is) y define `UMAMI_URL` (URL de tu instancia + `/script.js`) y `UMAMI_ID`. Sin estas variables el build no incluye ningún tracker: cero cookies, cero banner.
+4. Cada push a `main` redespliega solo.
 
 ## Actualización automática
 
-El workflow `.github/workflows/refresh.yml` corre **cada lunes 06:00 UTC**: trae datos frescos, regenera Excel y los 17 HTML, verifica y hace push. Vercel/Netlify detectan el push y republican solos. Nada manual. También puedes lanzarlo a mano desde Actions → Run workflow.
+El workflow `.github/workflows/refresh.yml` corre **cada lunes 06:00 UTC** (o manual desde Actions → Run workflow):
+
+`fetch_top` → `fetch_trending` → `describe` → `snapshot` → `export_excel` → `build_site` → `build_paginas` → `gen_landing` → `gen_sitemap` → `verify` → `pytest` → commit + push.
+
+- Las fechas (`fecha`, ventana de 30 días, textos de corte) se derivan de los datos: nada hardcodeado.
+- Con `GITHUB_TOKEN` (el de Actions vale) la API va autenticada; en anónimo aguanta con pausas (~10 req/min en Search API).
+- `snapshot.py` archiva cada corte en `data/history/` (base de rachas, flechas ▲▼ y la vista "En el tiempo").
 
 ## Qué incluye
 
-- **Módulo Los 500**: buscador, filtro por categoría, orden por estrellas/bifurcaciones, paginado y vista previa de cada repo.
-- **Módulo Tendencias**: filtro por día exacto o rangos (últimos 5 / 15 días / mes), orden por novedad y sello de antigüedad.
-- **Descargas**: CSV, Excel (filtrado o completo), JSON y PDF desde cada página.
-- **Mis elegidos**: marca con ☆ los repos que te gusten mientras exploras (se guardan en el navegador), filtra la vista a solo ellos y descárgalos aparte en Excel, PDF o CSV.
-- **17 temas**: paletas y tipografías distintas (terminal, neobrutalista, bento, kanban, podio...), español total y descripciones ampliadas.
-- **Pipeline reproducible**: pasa de la API a los datos y al sitio con 5 scripts.
+- **Módulo Los 500 / Tendencias**: buscador, categoría, licencia (MIT/permisivas/copyleft), "solo vivos", "sin awesome-lists", fecha exacta o rangos, 4 ordenamientos (incluye "mayor subida").
+- **Dinámica de puestos**: flechas ▲▼, "nuevo en el ranking", tiras Top subidas/caídas/nuevos y rachas 🔥 desde el segundo corte.
+- **Analytics**: curva logarítmica con etiquetas y selector Top 30/50/100/200/Todos, vista "En el tiempo", radar por categoría, líderes de crecimiento (CSV), histograma y serie por repo al clic.
+- **Noticias**: hitos, recién llegados y rachas generados de los datos.
+- **17 temas** que persisten en todas las vistas (`?tema=`), con contraste validado automáticamente.
+- **Descargas**: CSV, Excel (filtrado o completo), JSON y PDF; **Mis elegidos** (☆) guardados en el navegador.
+- **Privacidad**: sin cookies ni rastreo en local; Umami sin cookies solo en producción.
 
 ## Estructura
 
 ```
 github-ranking/
-├── data/               # repos.json (500) y trending.json (200), generados
-├── docs/               # sitio publicable (17 HTML + 2 XLSX con hipervínculos)
+├── data/                  # repos.json (500) y trending.json (200) + history/
+├── docs/                  # sitio publicable (17 temas + analytics + noticias + xlsx)
+├── src/ranking/           # lógica compartida: taxonomia, historial, fechas
 ├── scripts/
-│   ├── fetch_top.py       # Top 500 por estrellas (GitHub Search API)
-│   ├── fetch_trending.py  # Creados en los últimos 30 días
-│   ├── describe.py        # Descripciones en español + categoría/tipo
+│   ├── fetch_top.py / fetch_trending.py  # GitHub Search API (fecha real, token)
+│   ├── describe.py        # descripciones en español + categoría/tipo
+│   ├── snapshot.py        # archiva el corte en data/history/
 │   ├── export_excel.py    # top500.xlsx y trending.xlsx
-│   ├── build_site.py      # Genera los 17 HTML
-│   └── verify.py          # Valida JS con node y datos embebidos
-└── .github/workflows/refresh.yml  # refresco semanal automático
+│   ├── build_site.py      # genera los 17 HTML (+OG/canonical/Umami si hay env)
+│   ├── build_paginas.py   # genera analiticas.html y noticias.html
+│   ├── gen_landing.py     # genera index.html (portada)
+│   ├── gen_sitemap.py     # sitemap.xml (usa SITE_URL si existe)
+│   └── verify.py          # JS con node + datos + tracker + contraste
+├── tests/test_e2e.py      # 8 tests en Chromium real (Playwright)
+└── .github/workflows/refresh.yml  # refresco semanal con gates
 ```
 
 ## Uso
 
 ```bash
 pip install -r requirements.txt
-python scripts/fetch_top.py       # respeta el límite de la API (pausas incluidas)
+pip install pytest playwright && python -m playwright install chromium  # solo tests
+python scripts/fetch_top.py       # API real; escribe data/repos.json con fecha de hoy
 python scripts/fetch_trending.py
 python scripts/describe.py
+python scripts/snapshot.py
 python scripts/export_excel.py
 python scripts/build_site.py
+python scripts/build_paginas.py
+python scripts/gen_landing.py
+python scripts/gen_sitemap.py
+python scripts/verify.py          # 0 fallos: datos + JS + tracker + contraste
+python -m pytest tests -q         # 8 E2E en Chromium
 ```
-
-Sin token la Search API permite ~10 peticiones/minuto; los scripts ya incluyen las pausas.
 
 ## Stack
 
-Python (stdlib + openpyxl) para datos · HTML/CSS/JS vainilla + SheetJS para exports · Sin build, sin dependencias en el sitio.
+Python (stdlib + openpyxl) para datos · HTML/CSS/SVG vainilla + SheetJS · Sin build, sin dependencias en el sitio · Umami (solo prod) · CI en GitHub Actions.
 
 ## Licencia
 
-MIT. Datos: API pública de GitHub (corte incluido en cada archivo).
+MIT. Datos: API pública de GitHub (corte incluido en cada archivo); descripciones en español y taxonomía, propias.
