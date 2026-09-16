@@ -20,6 +20,8 @@ Cada archivo es autónomo: trae ambas bases de datos embebidas (~700 registros).
 3. **Analytics (opcional, solo producción)**: crea un sitio en [Umami](https://umami.is) y define `UMAMI_URL` (URL de tu instancia + `/script.js`) y `UMAMI_ID`. Sin estas variables el build no incluye ningún tracker: cero cookies, cero banner.
 4. Cada push a `main` redespliega solo.
 
+> Atajo en Windows: edita `$RepoUrl` en `publicar.ps1` y ejecútalo; hace push, deploy y variables paso a paso.
+
 ## Actualización automática
 
 El workflow `.github/workflows/refresh.yml` corre **cada lunes 06:00 UTC** (o manual desde Actions → Run workflow):
