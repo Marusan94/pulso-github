@@ -1,65 +1,8 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ranking GitHub en español — 500 repos + tendencias, 17 temas</title>
-<meta name="description" content="Explorador en español de los 500 repositorios con más estrellas de GitHub y las tendencias del mes. 17 temas visuales, filtros, vista previa y descargas a Excel, CSV, JSON y PDF.">
-<meta property="og:title" content="Ranking GitHub en español">
-<meta property="og:description" content="500 repos + 200 tendencias, 17 temas, filtros y descargas.">
-<meta property="og:type" content="website">
-
-<meta name="twitter:card" content="summary">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-body{background:#070B14;color:#E8ECF5;font-family:'Sora',system-ui,sans-serif;margin:0}
-.wrap{max-width:1100px;margin:0 auto;padding:20px}
-.hero{padding:36px 0 8px}.hero h1{font-size:clamp(28px,5vw,52px);margin:0;letter-spacing:-.02em}
-.hero h1 em{font-style:normal;color:#22D3EE}
-.stats{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
-.stat{background:#111A2E;border:1px solid #2A3550;border-radius:12px;padding:12px 18px}
-.stat b{font-size:24px;display:block}.stat span{color:#9AA7C2;font-size:13px}
-.bar{position:sticky;top:8px;background:#111A2E;border:1px solid #2A3550;border-radius:12px;padding:10px;display:flex;gap:8px;z-index:5;margin:14px 0}
-.bar input{flex:1;background:#0B1222;color:#E8ECF5;border:1px solid #2A3550;border-radius:8px;padding:9px 12px;font:inherit}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.grid{grid-template-columns:1fr}}
-.tcard{border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
-.tcard h3{margin:0;font-size:20px}.tl{margin:0;opacity:.75;font-size:13px}.tf{margin:0;opacity:.6;font-size:12px}
-.tcard a{margin-top:8px;text-align:center;color:#070B14;font-weight:700;text-decoration:none;border-radius:9px;padding:10px}
-.sw{height:44px;border-radius:9px;display:flex;align-items:end;padding:6px}
-.sw span{width:44px;height:10px;border-radius:99px;display:block}
-section{margin:26px 0}h2{font-size:24px}
-.feat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.feat div{background:#111A2E;border:1px solid #2A3550;border-radius:12px;padding:14px}
-@media(max-width:700px){.feat{grid-template-columns:1fr}}
-footer{color:#9AA7C2;font-size:13px;margin:30px 0}
-a{color:#22D3EE}:focus-visible{outline:3px solid #22D3EE;outline-offset:2px}
-code{background:#111A2E;padding:2px 6px;border-radius:6px}
-@media(prefers-reduced-motion:reduce){*{animation:none!important}}
-</style></head>
-<body><div class="wrap">
-<header class="hero">
-<p style="color:#9AA7C2" class="mono">Datos del 15 sep 2026 · se actualiza solo cada lunes</p>
-<h1>El ranking de GitHub, <em>en español</em> y con 17 caras.</h1>
-<p style="color:#9AA7C2">Los 500 repositorios con más estrellas + 200 tendencias del mes. Filtra, previsualiza y descarga. Cada tema es un archivo independiente que funciona con doble clic.</p>
-<div class="stats">
-<div class="stat"><b>500</b><span>repositorios top</span></div>
-<div class="stat"><b>200</b><span>tendencias del mes</span></div>
-<div class="stat"><b>47,5 millones estrellas</b><span>estrellas sumadas</span></div>
-<div class="stat"><b>17</b><span>temas visuales</span></div>
-</div></header>
-<div class="bar"><input id="q" placeholder="Filtra temas: terminal, claro, bento..." aria-label="Filtrar temas"></div>
-<section><h2>Temas</h2><div class="grid" id="g"><article class='tcard' data-bus='signal tarjetas' style='background:#FFFFFF;color:#16130E;border:1px solid #D63A2F'><div class='sw' style='background:#FAFAF7'><span style='background:#D63A2F'></span></div><h3>Signal</h3><p class='tl'>tarjetas · claro</p><p class='tf'>Archivo + IBM Plex Mono</p><a style='background:#D63A2F' href='01-signal-cards.html'>Abrir tema</a></article><article class='tcard' data-bus='consola tabla' style='background:#11161F;color:#E6E1D8;border:1px solid #4ADE80'><div class='sw' style='background:#0A0E14'><span style='background:#4ADE80'></span></div><h3>Consola</h3><p class='tl'>tabla · oscuro</p><p class='tf'>Sora + JetBrains Mono</p><a style='background:#4ADE80' href='02-midnight-console.html'>Abrir tema</a></article><article class='tcard' data-bus='libro tabla' style='background:#FFFFFF;color:#1F1B16;border:1px solid #1D4ED8'><div class='sw' style='background:#FBFAF7'><span style='background:#1D4ED8'></span></div><h3>Libro</h3><p class='tl'>tabla · claro</p><p class='tf'>Roboto Slab + IBM Plex Mono</p><a style='background:#1D4ED8' href='04-ledger-table.html'>Abrir tema</a></article><article class='tcard' data-bus='marea tarjetas' style='background:#16283A;color:#F2F7FA;border:1px solid #5EEAD4'><div class='sw' style='background:#0B1B26'><span style='background:#5EEAD4'></span></div><h3>Marea</h3><p class='tl'>tarjetas · oscuro</p><p class='tf'>Outfit</p><a style='background:#5EEAD4' href='05-tide-glass.html'>Abrir tema</a></article><article class='tcard' data-bus='torre dividida' style='background:#FFFFFF;color:#141A2B;border:1px solid #4F46E5'><div class='sw' style='background:#F2F4FA'><span style='background:#4F46E5'></span></div><h3>Torre</h3><p class='tl'>dividida · claro</p><p class='tf'>DM Sans + JetBrains Mono</p><a style='background:#4F46E5' href='07-control-tower.html'>Abrir tema</a></article><article class='tcard' data-bus='atlas kanban' style='background:#FFFFFF;color:#10202E;border:1px solid #0277B6'><div class='sw' style='background:#F4F7FA'><span style='background:#0277B6'></span></div><h3>Atlas</h3><p class='tl'>kanban · claro</p><p class='tf'>Manrope</p><a style='background:#0277B6' href='08-atlas-kanban.html'>Abrir tema</a></article><article class='tcard' data-bus='fósforo tabla' style='background:#06130B;color:#B6FFC9;border:1px solid #4ADE80'><div class='sw' style='background:#041008'><span style='background:#4ADE80'></span></div><h3>Fósforo</h3><p class='tl'>tabla · oscuro</p><p class='tf'>VT323 + IBM Plex Mono</p><a style='background:#4ADE80' href='09-phosphor-terminal.html'>Abrir tema</a></article><article class='tcard' data-bus='galería bento' style='background:#1E1B17;color:#F5EFE4;border:1px solid #F59E0B'><div class='sw' style='background:#141210'><span style='background:#F59E0B'></span></div><h3>Galería</h3><p class='tl'>bento · oscuro</p><p class='tf'>Sora + Hanken Grotesk</p><a style='background:#F59E0B' href='11-gallery-wall.html'>Abrir tema</a></article><article class='tcard' data-bus='bloque tarjetas' style='background:#FFFFFF;color:#000000;border:1px solid #FF5C00'><div class='sw' style='background:#FFF3D6'><span style='background:#FF5C00'></span></div><h3>Bloque</h3><p class='tl'>tarjetas · claro</p><p class='tf'>Archivo Black + Space Mono</p><a style='background:#FF5C00' href='14-block-party.html'>Abrir tema</a></article><article class='tcard' data-bus='pluma tarjetas' style='background:#FFFFFF;color:#221B2E;border:1px solid #7C3AED'><div class='sw' style='background:#F4EFFA'><span style='background:#7C3AED'></span></div><h3>Pluma</h3><p class='tl'>tarjetas · claro</p><p class='tf'>Figtree + IBM Plex Mono</p><a style='background:#7C3AED' href='15-plum-material.html'>Abrir tema</a></article><article class='tcard' data-bus='cueva lista' style='background:#161B22;color:#E6EDF3;border:1px solid #1F6FEB'><div class='sw' style='background:#0D1117'><span style='background:#1F6FEB'></span></div><h3>Cueva</h3><p class='tl'>lista · oscuro</p><p class='tf'>IBM Plex Mono</p><a style='background:#1F6FEB' href='16-cave-git.html'>Abrir tema</a></article><article class='tcard' data-bus='podio podio' style='background:#1A2436;color:#F8F3E7;border:1px solid #FBBF24'><div class='sw' style='background:#101828'><span style='background:#FBBF24'></span></div><h3>Podio</h3><p class='tl'>podio · oscuro</p><p class='tf'>Oswald + Cabin</p><a style='background:#FBBF24' href='21-podium.html'>Abrir tema</a></article><article class='tcard' data-bus='nocturna tarjetas' style='background:#101218;color:#EDEFF5;border:1px solid #34D399'><div class='sw' style='background:#08090D'><span style='background:#34D399'></span></div><h3>Nocturna</h3><p class='tl'>tarjetas · oscuro</p><p class='tf'>Sora + JetBrains Mono</p><a style='background:#34D399' href='23-night-drive.html'>Abrir tema</a></article><article class='tcard' data-bus='abismo tabla' style='background:#07293D;color:#E8F6FF;border:1px solid #22D3EE'><div class='sw' style='background:#041E2E'><span style='background:#22D3EE'></span></div><h3>Abismo</h3><p class='tl'>tabla · oscuro</p><p class='tf'>Chakra Petch + IBM Plex Mono</p><a style='background:#22D3EE' href='28-abyss.html'>Abrir tema</a></article><article class='tcard' data-bus='perenne tarjetas' style='background:#10281A;color:#E9F5EC;border:1px solid #4ADE80'><div class='sw' style='background:#0A1F14'><span style='background:#4ADE80'></span></div><h3>Perenne</h3><p class='tl'>tarjetas · oscuro</p><p class='tf'>Bitter + Work Sans</p><a style='background:#4ADE80' href='29-evergreen.html'>Abrir tema</a></article><article class='tcard' data-bus='brasa bento' style='background:#241209;color:#FBF3E8;border:1px solid #F97316'><div class='sw' style='background:#1A0E08'><span style='background:#F97316'></span></div><h3>Brasa</h3><p class='tl'>bento · oscuro</p><p class='tf'>DM Serif Display + Karla</p><a style='background:#F97316' href='30-ember.html'>Abrir tema</a></article><article class='tcard' data-bus='tendencias tarjetas' style='background:#111A2E;color:#E8ECF5;border:1px solid #22D3EE'><div class='sw' style='background:#070B14'><span style='background:#22D3EE'></span></div><h3>Tendencias</h3><p class='tl'>tarjetas · oscuro</p><p class='tf'>Sora + JetBrains Mono</p><a style='background:#22D3EE' href='trending.html'>Abrir tema</a></article></div></section>
-<section><h2>Qué sabe hacer</h2><div class="feat">
-<div><b>Dos módulos por archivo.</b> Los 500 y Tendencias conviven en cada tema con interruptor propio.</div>
-<div><b>Filtros de fecha reales.</b> Día exacto o rangos de 5, 15 y 30 días sobre fecha de creación.</div>
-<div><b>Descargas.</b> CSV, Excel (filtrado o completo), JSON y PDF desde el navegador.</div>
-<div><b>Datos con pipeline.</b> <code>scripts/</code> va de la API al sitio; un Action lo refresca cada lunes.</div>
-</div></section>
-<footer>Hecho con la API pública de GitHub · <a href="top500.xlsx">Excel 500</a> · <a href="trending.xlsx">Excel tendencias</a></footer>
-</div>
-<script>
-const q = document.getElementById('q'), cards = [...document.querySelectorAll('.tcard')];
-q.addEventListener('input', () => {
-  const v = q.value.toLowerCase();
-  cards.forEach(c => c.style.display = c.dataset.bus.includes(v) ? '' : 'none');
-});
-</script></body></html>
+<title>Pulso GitHub — Ranking en español</title>
+<meta name="description" content="Ranking GitHub en español: los 500 repos con más estrellas y 200 tendencias.">
+<meta http-equiv="refresh" content="0; url=02-midnight-console.html">
+<link rel="canonical" href="02-midnight-console.html">
+</head>
+<body><p>Abriendo Pulso GitHub… <a href="02-midnight-console.html">entrar</a></p>
+<script>location.replace('02-midnight-console.html' + location.search);</script></body></html>

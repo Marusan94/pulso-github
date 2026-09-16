@@ -38,7 +38,7 @@ a{color:var(--acc)}
 @media print{.seg,nav{display:none}body{background:#fff;color:#000}.card{border-color:#000}}
 </style></head>
 <body><div class="wrap">
-<nav class="tabs noprint"><a href="analiticas.html" id="t-ana">◔ Analytics</a><a href="noticias.html" id="t-not">📰 Noticias</a><a href="29-evergreen.html" id="t-home">⌂ Inicio</a></nav>
+<nav class="tabs noprint"><a href="analiticas.html" id="t-ana">◔ Analytics</a><a href="noticias.html" id="t-not">📰 Noticias</a><a href="02-midnight-console.html" id="t-home">⌂ Inicio</a></nav>
 
 <p class="mut">Titulares generados de tus datos · corte 15 sep 2026</p>
 <h1>Noticias</h1>
@@ -80,7 +80,7 @@ function temaActual(){
 function applyTema(){
   const T = temaActual();
   const th = document.getElementById('t-home');
-  if (th) th.href = (T ? T + '.html' : '29-evergreen.html') + '?mod=' + module;
+  if (th) th.href = (T ? T + '.html' : '02-midnight-console.html') + '?mod=' + module;
   if (!T) return;
   const t = TEMAS[T], r = document.documentElement.style;
   r.setProperty('--bg', t.bg); r.setProperty('--card', t.card); r.setProperty('--ink', t.ink);
@@ -107,7 +107,7 @@ function setModule(m){
   const ta = document.getElementById('t-ana'), tn = document.getElementById('t-not'), th = document.getElementById('t-home');
   if (ta) ta.href = 'analiticas.html?mod=' + m + (temaActual() ? '&tema=' + temaActual() : '');
   if (tn) tn.href = 'noticias.html?mod=' + m + (temaActual() ? '&tema=' + temaActual() : '');
-  if (th) th.href = (temaActual() ? temaActual() + '.html' : '29-evergreen.html') + '?mod=' + m;
+  if (th) th.href = (temaActual() ? temaActual() + '.html' : '02-midnight-console.html') + '?mod=' + m;
   render();
 }
 document.getElementById('m500').onclick = () => { ev('modulo', {modulo: '500'}); setModule('500'); };

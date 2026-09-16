@@ -26,7 +26,6 @@ jobs:
       - run: python scripts/export_excel.py
       - run: python scripts/build_site.py
       - run: python scripts/build_paginas.py
-      - run: python scripts/gen_landing.py
       - run: python scripts/gen_sitemap.py
       - uses: actions/setup-node@v4
         with:

@@ -10,9 +10,9 @@
   </p>
 </p>
 
-| Portada | Tema Bloque | Analytics |
+| Inicio (tema Consola) | Analytics | Noticias |
 |---|---|---|
-| ![Portada](assets/hero-landing.png) | ![Tema Bloque](assets/tema-bloque.png) | ![Analytics](assets/analytics.png) |
+| ![Inicio](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![Noticias](assets/noticias.png) |
 
 ## ✨ Qué hace
 
@@ -30,7 +30,7 @@
 # Opción 1: doble clic en cualquier HTML de docs/
 # Opción 2 (recomendada): servidor local
 cd docs && python -m http.server 8901
-# o doble clic en ver.bat → http://localhost:8901/29-evergreen.html
+# o doble clic en ver.bat → http://localhost:8901/02-midnight-console.html
 ```
 
 ## 🔄 Cómo se actualiza solo
@@ -40,7 +40,7 @@ flowchart LR
     API[GitHub Search API] --> FETCH[fetch_*]
     FETCH --> DESC[describe + taxonomía]
     DESC --> SNAP[snapshot semanal]
-    SNAP --> BUILD[build_site + build_paginas + landing]
+    SNAP --> BUILD[build_site + build_paginas]
     BUILD --> CHECK[verify + pytest]
     CHECK --> PUSH[commit + push]
     PUSH --> DEPLOY[redespliegue solo]
