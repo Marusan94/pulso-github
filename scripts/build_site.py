@@ -116,6 +116,30 @@ td.num{font-family:'JetBrains Mono',monospace;white-space:nowrap}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}}
+@media(max-width:480px){
+  .card{padding:8px}
+  .bar{padding:8px}
+  .seg button{padding:6px}
+  .pick{padding:4px 8px}
+  .bdg{font-size:10px;padding:2px 6px}
+  .age{padding:2px 6px}
+  .dl button{padding:6px 10px}
+  .pg button{padding:4px 10px}
+  img.prev{min-height:80px}
+}
+
+/* Revertir cambios responsivos */
+/* @media(max-width:480px){
+  .card{padding:8px}
+  .bar{padding:8px}
+  .seg button{padding:6px}
+  .pick{padding:4px 8px}
+  .bdg{font-size:10px;padding:2px 6px}
+  .age{padding:2px 6px}
+  .dl button{padding:6px 10px}
+  .pg button{padding:4px 10px}
+  img.prev{min-height:80px}
+} */
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 __EXTRA_CSS__
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
