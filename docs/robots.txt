@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://TU-DOMINIO/sitemap.xml
+Sitemap: https://marusan94.github.io/pulso-github/sitemap.xml
