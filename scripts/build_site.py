@@ -294,7 +294,7 @@ function apply(){
   page = 0; render();
 }
 ['q','c','s','lic','vivo','noaw'].forEach(id => document.getElementById(id).addEventListener('input', apply));
-function go(d){ page = Math.min(Math.max(0, page + d), Math.max(0, Math.ceil(F.length/PER) - 1)); render(); window.scrollTo(0,0); }
+function go(d){ const totalPages = Math.max(1, Math.ceil(F.length / PER)); page = Math.min(Math.max(0, page + d), totalPages - 1); render(); window.scrollTo(0,0); }
 document.getElementById('prev').onclick = document.getElementById('prev2').onclick = () => go(-1);
 document.getElementById('next').onclick = document.getElementById('next2').onclick = () => go(1);
 function racha(x){
