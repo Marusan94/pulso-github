@@ -80,7 +80,14 @@ h1{font-family:'__DISP__',system-ui,sans-serif;font-weight:800;letter-spacing:-.
 .seg button.on{background:var(--acc);color:var(--acctext)}
 .seg input{background-color:color-mix(in srgb, var(--ink) 6%, transparent);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font-family:inherit}
 .bar{display:flex;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;position:sticky;top:8px;z-index:5;align-items:center}
+.bar label{color:var(--ink);font-weight:600}
 .bar input,.bar select{background:color-mix(in srgb, var(--ink) 6%, transparent);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit}
+.bar select option{background:var(--card);color:var(--ink)}
+
+/* Revertir cambios */
+/* .bar{display:flex;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;position:sticky;top:8px;z-index:5;align-items:center}
+.bar label{color:var(--ink);font-weight:600}
+.bar input,.bar select{background:color-mix(in srgb, var(--ink) 6%, transparent);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit} */
 .bar input{flex:1;min-width:160px}
 .dl{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
 .dl button{background:transparent;border:1px solid var(--acc);color:var(--acc);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;font-family:inherit}
@@ -130,6 +137,7 @@ __EXTRA_HERO__
 <label class="mut" for="q">Buscar</label><input id="q" placeholder="Por ejemplo: agentes, python, editores...">
 <label class="mut" for="c">Categoría</label><select id="c"><option value="">Todas</option></select>
 <label class="mut" for="s">Ordenar por</label><select id="s"><option value="stars">Estrellas</option><option value="new">Más nuevos</option><option value="forks">Bifurcaciones</option><option value="up">Mayor subida</option></select>
+<div style="flex-basis:100%;height:0"></div>
 <label class="mut" for="lic">Licencia</label><select id="lic"><option value="">Todas</option><option value="MIT">MIT</option><option value="perm">Permisivas (MIT/Apache/BSD)</option><option value="copy">Copyleft (revisar)</option></select>
 <label class="mut"><input type="checkbox" id="vivo"> Solo vivos</label>
 <label class="mut"><input type="checkbox" id="noaw"> Sin awesome-lists</label>
