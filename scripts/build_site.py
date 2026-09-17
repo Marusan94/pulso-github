@@ -46,7 +46,7 @@ FILES = [
 ("05-tide-glass", "Marea", "cards", ".card{background:rgba(17,26,46,.72);backdrop-filter:blur(6px)}", ""),
 ("07-control-tower", "Torre", "split", ".live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--acc)}", "<p class='mut'><span class='live'></span> base local, sin internet salvo vistas previas</p>"),
 ("08-atlas-kanban", "Atlas", "kanban", ".colh{border-bottom:2px solid var(--acc);padding-bottom:4px}", ""),
-("09-phosphor-terminal", "Fósforo", "table", ".scan{height:6px;background:repeating-linear-gradient(0deg,var(--acc) 0 1px,transparent 1px 3px);opacity:.25;margin:8px 0} td{font-family:mono}", "<div class='scan'></div><p class='mut'>> consultando base local de 700 registros...</p>"),
+("09-phosphor-terminal", "Fósforo", "table", ".scan{height:6px;background:repeating-linear-gradient(0deg,var(--acc) 0 1px,transparent 1px 3px);opacity:.25;margin:8px 0} td{font-family:mono}", "<div class='scan'></div><p class='mut'>> consultando base local de 500 registros...</p>"),
 ("11-gallery-wall", "Galería", "bento", "img.prev{min-height:120px;object-fit:cover}", ""),
 ("14-block-party", "Bloque", "cards", ".card{border:2px solid var(--acc);box-shadow:5px 5px 0 var(--acc)}", ""),
 ("15-plum-material", "Pluma", "cards", ".card{border-radius:20px} h1{letter-spacing:.01em}", ""),
@@ -116,7 +116,7 @@ __EXTRA_CSS__
 </style></head>
 <body><div class="wrap">
 <nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a id="t-ana" href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a id="t-not" href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
-<p class="mut mono">700 registros incluidos en este archivo &middot; corte __FCORTE__ &middot; funciona sin internet salvo vistas previas</p>
+<p class="mut mono">500 registros incluidos en este archivo &middot; corte __FCORTE__ &middot; funciona sin internet salvo vistas previas</p>
 <h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
 __EXTRA_HERO__

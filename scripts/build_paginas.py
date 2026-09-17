@@ -145,7 +145,7 @@ ev('pagina_vista', {pagina: '__PAGINA__'});
 </script>__UMAMI__</body></html>"""
 
 ANA_BODY = """
-<p class="mut">700 registros incluidos · corte __FCORTE__</p>
+<p class="mut">500 registros incluidos · corte __FCORTE__</p>
 <h1>Analytics</h1>
 <div class="seg" role="group" aria-label="Módulo"><button id="m500" class="on">Los 500</button><button id="mtre">Tendencias</button></div>
 <div class="stats" id="stats"></div>
