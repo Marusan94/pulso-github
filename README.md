@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">📊 Pulso GitHub</h1>
-  <p align="center"><strong>El ranking de GitHub, en español y con 17 caras.</strong><br>500 repos con más estrellas + 200 tendencias. Filtra, previsualiza, descarga y explóralo en 3D.</p>
+  <p align="center"><strong>El ranking de GitHub, en español y con 17 caras.</strong><br>500 repos con más estrellas + 200 tendencias. Filtra, previsualiza, descarga y explóralo en 3D.<br><a href="https://marusan94.github.io/pulso-github/"><strong>🌐 Ver en vivo → marusan94.github.io/pulso-github</strong></a></p>
   <p align="center">
     <a href="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml"><img src="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml/badge.svg" alt="refresh semanal"></a>
     <img src="https://img.shields.io/badge/python-3.11-blue" alt="python 3.11">
@@ -10,9 +10,9 @@
   </p>
 </p>
 
-| Inicio (tema Consola) | Analytics | Noticias |
-|---|---|---|
-| ![Inicio](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![Noticias](assets/noticias.png) |
+| Inicio (tema Consola) | Analytics | Noticias | Galaxia 3D |
+|---|---|---|---|
+| ![Inicio](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![Noticias](assets/noticias.png) | ![Galaxia](assets/galaxia.png) |
 
 ## ✨ Qué hace
 
