@@ -69,7 +69,7 @@ a{color:var(--acc)}
 @media print{.seg,nav{display:none}body{background:#fff;color:#000}.card{border-color:#000}}
 </style></head>
 <body><div class="wrap">
-<nav class="tabs noprint"><a href="analiticas.html" id="t-ana">◔ Analytics</a><a href="noticias.html" id="t-not">📰 Noticias</a><a href="02-midnight-console.html" id="t-home">⌂ Inicio</a></nav>
+<nav class="tabs noprint"><a href="analiticas.html" id="t-ana">◔ Analytics</a><a href="noticias.html" id="t-not">📰 Noticias</a><a href="galaxia.html" id="t-gal">🌌 Galaxia</a><a href="02-midnight-console.html" id="t-home">⌂ Inicio</a></nav>
 __BODY__
 </div>
 <script>

@@ -146,7 +146,7 @@ __EXTRA_CSS__
 @media print{.bar,.pg,.dl,.seg,.noprint{display:none!important}body{background:#fff;color:#000}.card{border-color:#000;break-inside:avoid}}
 </style></head>
 <body><div class="wrap">
-<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a id="t-ana" href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a id="t-not" href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a></nav>
+<nav class="noprint" aria-label="Secciones" style="display:flex;gap:8px;margin-bottom:4px"><a id="t-ana" href="analiticas.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">◔ Analytics</a><a id="t-not" href="noticias.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">📰 Noticias</a><a id="t-gal" href="galaxia.html" style="border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700">🌌 Galaxia</a></nav>
 <p class="mut mono">500 registros incluidos en este archivo &middot; corte __FCORTE__ &middot; funciona sin internet salvo vistas previas</p>
 <h1>Pulso GitHub</h1>
 <p class="mut">Busca, filtra y abre cada repositorio con su vista previa.</p>
