@@ -1,87 +1,118 @@
 <p align="center">
   <h1 align="center">📊 Pulso GitHub</h1>
-  <p align="center"><strong>El ranking de GitHub, en español y con 17 caras.</strong><br>500 repos con más estrellas + 200 tendencias. Filtra, previsualiza, descarga y explóralo en 3D.<br><a href="https://marusan94.github.io/pulso-github/"><strong>🌐 Ver en vivo → marusan94.github.io/pulso-github</strong></a></p>
+  <p align="center"><strong>The GitHub ranking, in clear Spanish, with 17 faces.</strong><br>500 most-starred repos + 200 trending. Filter, preview, download, and explore in 3D.<br><a href="https://marusan94.github.io/pulso-github/"><strong>🌐 Live → marusan94.github.io/pulso-github</strong></a></p>
   <p align="center">
-    <a href="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml"><img src="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml/badge.svg" alt="refresh semanal"></a>
+    <a href="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml"><img src="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml/badge.svg" alt="weekly refresh"></a>
     <img src="https://img.shields.io/badge/python-3.11-blue" alt="python 3.11">
-    <img src="https://img.shields.io/badge/espa%C3%B1ol-100%25-red" alt="español">
-    <img src="https://img.shields.io/badge/datos-lunes_06%3A00_UTC-green" alt="refresco semanal">
-    <img src="https://img.shields.io/badge/licencia-MIT-yellow" alt="MIT">
+    <img src="https://img.shields.io/badge/spanish-100%25-red" alt="spanish">
+    <img src="https://img.shields.io/badge/data-monday_06%3A00_UTC-green" alt="weekly refresh">
+    <img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT">
+    <img src="https://img.shields.io/badge/tests-8_E2E_Playwright-brightgreen" alt="E2E">
   </p>
 </p>
 
-| Inicio (tema Consola) | Analytics | Noticias | Galaxia 3D |
+## Table of Contents
+
+- [Screenshots](#-screenshots)
+- [Features](#-features)
+- [Quickstart](#-quickstart)
+- [How It Updates](#-how-it-updates)
+- [Usage](#-usage)
+- [Structure](#️-structure)
+- [Configuration](#️-configuration)
+- [Quality](#-quality)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+## 📸 Screenshots
+
+| Home (Console theme) | Analytics | News | 3D Galaxy |
 |---|---|---|---|
-| ![Inicio](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![Noticias](assets/noticias.png) | ![Galaxia](assets/galaxia.png) |
+| ![Home](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![News](assets/noticias.png) | ![Galaxy](assets/galaxia.png) |
 
-## ✨ Qué hace
+## ✨ Features
 
-- 🔍 **Dos módulos**: Los 500 + Tendencias (30 días), con buscador, categoría, licencia, fecha exacta o rangos y 4 ordenamientos.
-- 📈 **Dinámica real**: flechas ▲▼ de puestos, rachas 🔥, Top subidas/caídas y vista "En el tiempo" desde el segundo corte.
-- 📊 **Analytics**: curva logarítmica con etiquetas, radar por categoría, líderes de crecimiento (CSV), histograma y serie por repo al clic.
-- 📰 **Noticias** generadas de los datos: hitos, recién llegados y rachas.
-- 🌌 **Galaxia 3D** (`docs/galaxia.html`): los 500 + 200 tendencias como constelaciones por categoría, tamaño por estrellas y color por lenguaje. Clic para ficha y vuelo de cámara, hover con etiqueta, conexiones entre similares, buscador y filtros. Cero backend: HTML estático con datos embebidos.
-- 🇪🇸 **Descripciones en español claro**: traducción sintética de lo que hace cada repo + ficha mínima, sin relleno genérico.
-- 🎨 **17 temas** que te siguen a todas las vistas (`?tema=`), con contraste validado. La entrada abre el tema Consola.
-- ⬇️ **Descargas**: CSV, Excel, JSON y PDF. **Mis elegidos** ☆ guardados en tu navegador.
-- 🔒 **Privacidad**: cero cookies en local; analytics open source (Umami) solo en producción.
+- 🔍 **Two modules**: Top 500 + Trending (30 days), with search, category, license, exact-date or range filters, 4 sort orders
+- 📈 **Real momentum**: rank arrows ▲▼, streaks 🔥, top risers/fallers, “Over time” view from the second snapshot on
+- 📊 **Analytics**: log-scale curve with labels, radar by category, growth leaders (CSV), histogram, per-repo series on click
+- 📰 **Data-driven news**: milestones, newcomers, streaks — generated from the data
+- 🌌 **3D Galaxy** (`docs/galaxia.html`): 500 + 200 trending as constellations by category, size by stars, color by language. Click for cards + camera fly, hover labels, similar-repo links, search + filters. Zero backend: static HTML with embedded data
+- 🇪🇸 **Clear Spanish descriptions**: synthetic translation of what each repo does + minimal card, no generic filler
+- 🎨 **17 themes** across every view (`?tema=`), contrast-checked. Default entry: Console theme
+- ⬇️ **Downloads**: CSV, Excel, JSON, PDF. **My picks** ☆ saved in your browser
+- 🔒 **Privacy**: zero cookies locally; open-source analytics (Umami) only in production
 
-## 🚀 Uso en local
+## 🚀 Quickstart
 
 ```bash
-# Opción 1: doble clic en cualquier HTML de docs/ (galaxia.html pide internet solo por el CDN de Three.js)
-# Opción 2 (recomendada): servidor local
+# Option 1: double-click any HTML in docs/ (galaxia.html needs internet only for the Three.js CDN)
+# Option 2 (recommended): local server
 cd docs && python -m http.server 8901
-# o doble clic en ver.bat → http://localhost:8901/02-midnight-console.html
+# or double-click ver.bat → http://localhost:8901/02-midnight-console.html
 ```
 
-## 🔄 Cómo se actualiza solo
+## 🔄 How It Updates
 
 ```mermaid
 flowchart LR
     API[GitHub Search API] --> FETCH[fetch_*]
-    FETCH --> DESC[describe + taxonomía]
-    DESC --> SNAP[snapshot semanal]
+    FETCH --> DESC[describe + taxonomy]
+    DESC --> SNAP[weekly snapshot]
     SNAP --> BUILD[build_site + build_paginas + build_galaxia]
     BUILD --> CHECK[verify + pytest]
     CHECK --> PUSH[commit + push]
-    PUSH --> DEPLOY[redespliegue solo]
+    PUSH --> DEPLOY[redeploy only]
 ```
 
-Cada lunes 06:00 UTC (o manual en Actions → Run workflow). Fechas, ventanas y textos de corte se derivan de los datos: nada hardcodeado. Con `GITHUB_TOKEN` la API va autenticada.
+Every Monday 06:00 UTC (or manual via Actions → Run workflow). Cutoff dates, windows, and labels derive from the data — nothing hardcoded. With `GITHUB_TOKEN` the API runs authenticated.
 
-## 🗂️ Estructura
+## 💡 Usage
+
+- **Explore**: open the live site → filter by category/license → sort by stars/growth → click a repo for its card.
+- **Time travel**: open “En el tiempo” after week 2 to see rank curves.
+- **Galaxy**: open `docs/galaxia.html` → search → filter by language → click a star for camera fly-to.
+- **Download**: export CSV/Excel/JSON/PDF from any view; ☆ picks persist in `localStorage`.
+
+## 🗂️ Structure
 
 ```
 ├── data/               # repos.json (500) + trending.json (200) + history/
-├── docs/               # sitio publicable (17 temas + analytics + noticias + galaxia + xlsx)
-├── src/ranking/        # lógica compartida: taxonomia, historial, fechas
-├── scripts/            # fetch → describe → snapshot → excel → builds → verify (incluye build_galaxia.py)
-├── tests/              # 8 E2E en Chromium real (Playwright)
+├── docs/               # publishable site (17 themes + analytics + news + galaxy + xlsx)
+├── src/ranking/        # shared logic: taxonomy, history, dates
+├── scripts/            # fetch → describe → snapshot → excel → builds → verify (incl. build_galaxia.py)
+├── tests/              # 8 E2E in real Chromium (Playwright)
 └── .github/workflows/refresh.yml
 ```
 
-## ⚙️ Variables de entorno (opcionales)
+## ⚙️ Configuration
 
-| Variable | Dónde | Efecto |
+| Variable | Where | Effect |
 |---|---|---|
-| `GITHUB_TOKEN` | Actions (automático) | API autenticada, sin rate-limits |
-| `SITE_URL` | Actions vars / proveedor | sitemap, canonical y OG con tu dominio |
-| `UMAMI_URL` + `UMAMI_ID` | Actions secrets/vars | tracker sin cookies solo en producción |
+| `GITHUB_TOKEN` | Actions (automatic) | Authenticated API, no rate limits |
+| `SITE_URL` | Actions vars / provider | Sitemap, canonical, OG with your domain |
+| `UMAMI_URL` + `UMAMI_ID` | Actions secrets/vars | Cookieless tracker only in production |
 
-Sin ellas todo funciona igual, sin tracker ni canonicals.
+Without them everything works — no tracker, no canonicals.
 
-## 🧪 Calidad
+Methodology, bias notes, and data license: [`docs/como-esta-hecho.html`](docs/como-esta-hecho.html).
+
+## 🧪 Quality
 
 ```bash
 pip install -r requirements.txt
 pip install pytest playwright && python -m playwright install chromium
-python scripts/verify.py   # datos + JS (node) + tracker + contraste WCAG
-python -m pytest tests -q  # 8 E2E en Chromium
+python scripts/verify.py   # data + JS (node) + tracker + WCAG contrast
+python -m pytest tests -q  # 8 E2E in Chromium
 ```
 
-Metodología, sesgos y licencia de datos: [`docs/como-esta-hecho.html`](docs/como-esta-hecho.html).
+## 🤝 Contributing
 
-## 📄 Licencia
+Fork → branch → `python scripts/verify.py` + `pytest -q` → PR. For taxonomy changes, include before/after counts.
 
-MIT. Datos: API pública de GitHub (corte incluido en cada archivo); descripciones y taxonomía, propias.
+## 📄 License
+
+MIT. Data: public GitHub API (snapshot bundled per file); descriptions and taxonomy are original.
+
+---
+
+<p align="center">Built by <a href="https://github.com/Marusan94">@Marusan94</a> · Updated every Monday 06:00 UTC</p>
