@@ -11,6 +11,16 @@
   </p>
 </p>
 
+## 🧭 El proyecto en breve
+
+**Pipeline de datos que se publica solo**
+
+- **Problema:** Nadie mantiene un ranking del open source en español.
+- **Automatización:** GitHub Actions lee la API, rankea 500 repos y publica la web sin intervención.
+- **Resultado:** Ranking vivo en español, actualizado solo.
+
+`Python` · `GitHub Actions` · `GitHub API` — [Demo →](https://marusan94.github.io/pulso-github) · [Código →](https://github.com/Marusan94/pulso-github)
+
 ## Table of Contents
 
 - [Screenshots](#-screenshots)
