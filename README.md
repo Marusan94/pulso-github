@@ -119,6 +119,19 @@ python -m pytest tests -q  # 8 E2E in Chromium
 
 Fork → branch → `python scripts/verify.py` + `pytest -q` → PR. For taxonomy changes, include before/after counts.
 
+## 🎮 Demo en vivo
+
+[https://marusan94.github.io/pulso-github/](https://marusan94.github.io/pulso-github/) — 17 temas visuales, galaxia 3D en `docs/galaxia.html`, descarga CSV/Excel/JSON/PDF.
+
+## 🔧 Casos de uso
+
+| Perfil | Qué haces |
+|--------|-----------|
+| **Dev / Open Source** | Filtra 500 top + 200 trending por categoría/licencia → ve rank arrows ▲▼ y streaks 🔥 |
+| **Investigador** | Curvas "En el tiempo" (semana 2+) → radar por categoría → leaders de crecimiento exportables |
+| **Curioso** | Galaxia 3D: 700 repos como constelaciones, tamaño=stars, color=lenguaje, click → fly-to + card |
+| **Equipo** | "My picks" ☆ persistentes en localStorage → descarga tu selección en CSV/Excel/JSON/PDF |
+
 ## 📄 License
 
 MIT. Data: public GitHub API (snapshot bundled per file); descriptions and taxonomy are original.
