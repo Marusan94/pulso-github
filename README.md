@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">📊 Pulso GitHub</h1>
-  <p align="center"><strong>The GitHub ranking, in clear Spanish, with 17 faces.</strong><br>500 most-starred repos + 200 trending. Filter, preview, download, and explore in 3D.<br><a href="https://marusan94.github.io/pulso-github/"><strong>🌐 Live → marusan94.github.io/pulso-github</strong></a></p>
+  <p align="center"><strong>The GitHub ranking, in clear Spanish, with 16 faces.</strong><br>500 most-starred repos + 200 trending. Filter, preview, download, and explore in 3D.<br><a href="https://marusan94.github.io/pulso-github/"><strong>🌐 Live → marusan94.github.io/pulso-github</strong></a></p>
   <p align="center">
     <a href="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml"><img src="https://github.com/Marusan94/pulso-github/actions/workflows/refresh.yml/badge.svg" alt="weekly refresh"></a>
     <img src="https://img.shields.io/badge/python-3.11-blue" alt="python 3.11">
@@ -48,7 +48,7 @@
 - 📰 **Data-driven news**: milestones, newcomers, streaks — generated from the data
 - 🌌 **3D Galaxy** (`docs/galaxia.html`): 500 + 200 trending as constellations by category, size by stars, color by language. Click for cards + camera fly, hover labels, similar-repo links, search + filters. Zero backend: static HTML with embedded data
 - 🇪🇸 **Clear Spanish descriptions**: synthetic translation of what each repo does + minimal card, no generic filler
-- 🎨 **17 themes** across every view (`?tema=`), contrast-checked. Default entry: Console theme
+- 🇪🇸 **16 themes** across every view (`?tema=`), contrast-checked. Default entry: Console theme
 - ⬇️ **Downloads**: CSV, Excel, JSON, PDF. **My picks** ☆ saved in your browser
 - 🔒 **Privacy**: zero cookies locally; open-source analytics (Umami) only in production
 
@@ -87,7 +87,7 @@ Every Monday 06:00 UTC (or manual via Actions → Run workflow). Cutoff dates, w
 
 ```
 ├── data/               # repos.json (500) + trending.json (200) + history/
-├── docs/               # publishable site (17 themes + analytics + news + galaxy + xlsx)
+├── docs/               # publishable site (16 themes + analytics + news + galaxy + xlsx)
 ├── src/ranking/        # shared logic: taxonomy, history, dates
 ├── scripts/            # fetch → describe → snapshot → excel → builds → verify (incl. build_galaxia.py)
 ├── tests/              # 8 E2E in real Chromium (Playwright)
@@ -121,7 +121,14 @@ Fork → branch → `python scripts/verify.py` + `pytest -q` → PR. For taxonom
 
 ## 🎮 Demo en vivo
 
-[https://marusan94.github.io/pulso-github/](https://marusan94.github.io/pulso-github/) — 17 temas visuales, galaxia 3D en `docs/galaxia.html`, descarga CSV/Excel/JSON/PDF.
+[https://marusan94.github.io/pulso-github/](https://marusan94.github.io/pulso-github/) — 16 temas visuales, galaxia 3D en `docs/galaxia.html`, descarga CSV/Excel/JSON/PDF.
+
+## 🎥 Demo en video
+
+[![Pulso Demo](assets/inicio-consola.png)](docs/demo-pulso.mp4)
+*Recorrido 45s: home → filtros por categoría → analytics → galaxia 3D.*
+
+> Graba con la demo en vivo, guarda en `docs/demo-pulso.mp4`, súbelo a YouTube/Loom y reemplaza este link.
 
 ## 🔧 Casos de uso
 
