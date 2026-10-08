@@ -36,9 +36,13 @@
 
 ## 📸 Screenshots
 
-| Home (Console theme) | Analytics | News | 3D Galaxy |
-|---|---|---|---|
-| ![Home](assets/inicio-consola.png) | ![Analytics](assets/analytics.png) | ![News](assets/noticias.png) | ![Galaxy](assets/galaxia.png) |
+| Vista | Captura |
+|-------|---------|
+| Home (Console theme) | ![Home](assets/inicio-consola.png) |
+| Analytics (curva + radar) | ![Analytics](assets/analytics.png) |
+| Galaxia 3D | ![Galaxy](assets/galaxia.png) |
+
+> Capturadas con Playwright (1366×768) del demo vivo https://marusan94.github.io/pulso-github/
 
 ## ✨ Features
 
